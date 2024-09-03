@@ -24,7 +24,6 @@ class DevCommand extends Command
                 $this->error($e->getMessage());
                 break;
             }
-            sleep(0.5);
         }
     }
 
