@@ -108,7 +108,7 @@ class TelegramBot
 
     public function set_webhook()
     {
-        $site_url = route('tgmehdi.bot');
+        $site_url = route('tgmehdi.bot', ['bot_name' => $this->bot['name']]);
         $token = $this->token;
         $secret_token = $this->bot['secret_token'];;
         return Http::connectTimeout(20)->withOptions(['proxy' => config('tgmehdi.proxy', null), 'verify' => false
