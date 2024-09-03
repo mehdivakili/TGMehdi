@@ -23,7 +23,7 @@
     "illuminate/support": "*"
   },
   "require-dev": {
-    "laravel/framework": "*"
+    "laravel/framework": ">=10"
   },
   "extra": {
     "laravel": {
