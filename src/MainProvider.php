@@ -40,7 +40,7 @@ class MainProvider extends ServiceProvider
             __DIR__ . '/../routes/bots' => base_path('routes/bots'),
         ], 'tgmehdi-routes');
         $this->loadRoutesFrom(__DIR__ . '/../routes/tgmehdi.php');
-        $this->publishesMigrations([
+        $this->publishes([
             __DIR__ . '/../database/migrations' => database_path('migrations'),
         ], 'tgmehdi-migrations');
         $this->loadTranslationsFrom(__DIR__ . '/../lang', 'tgmehdi');
