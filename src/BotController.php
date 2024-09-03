@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Redis;
 use TGMehdi\Controllers\TGMehdi;
+use TGMehdi\Events\ErrorEvent;
 use TGMehdi\Routing\BotRout;
 use TGMehdi\Routing\TGRout;
 use TGMehdi\States\StateBase;
@@ -52,6 +53,7 @@ class BotController extends Controller
 
     public function local_bot(Request $request, TelegramBot $tg, $bot_name)
     {
+        $be_seen = $request->get('be_seen');
 //        DB::connection()->enableQueryLog();
 //        Redis::enableEvents();
         $tg->switch_bot($bot_name);
@@ -61,7 +63,7 @@ class BotController extends Controller
         echo "<hr>" . json_encode($j) . "<hr>";
         foreach ($j as $item) {
             $this->r = $item;
-            $res = $this->bot($tg, $request, $bot_name);
+            $res = $this->bot($tg, $request, $bot_name, !$be_seen);
             echo "<hr>" . json_encode($res) . "<hr>";
             $update_id = $item['update_id'];
             Cache::forever('update_id', $update_id);
@@ -80,17 +82,37 @@ class BotController extends Controller
         return view('tgmehdi::update');
     }
 
-    public function bot(TelegramBot $tg, Request $request, $bot_name)
+    public function bot(TelegramBot $tg, Request $request, $bot_name, $is_error_must_see = false)
     {
         $tg->switch_bot($bot_name);
-        $this->bot_without_delayed_message($tg, $request);
-        if (!$tg->send_reply('', [])
-            and $tg->keyboard
-            and $tg->keyboard instanceof ReplyKeyboard) {
-            if ($tg->state_class and $tg->state_class->getDefaultText() != "test")
-                $tg->send_text($tg->state_class->getDefaultText(), true);
+        try {
+            $this->bot_without_delayed_message($tg, $request);
+            if (!$tg->send_reply('', [])
+                and $tg->keyboard
+                and $tg->keyboard instanceof ReplyKeyboard) {
+                if ($tg->state_class and $tg->state_class->getDefaultText() != "test")
+                    $tg->send_text($tg->state_class->getDefaultText(), true);
+            }
+            $tg->save_chat_state();
+        } catch (\Exception $exception) {
+            if (isset($tg->bot['debug']) and $tg->bot['debug']) {
+                $tg->send_text($exception->getMessage(), true);
+
+            }
+            try {
+                ErrorEvent::dispatch($tg, $exception);
+            } catch (\Exception $exception2) {
+                if ($is_error_must_see)
+                    throw $exception2;
+                return [
+                    ['result' => 'error', 'message' => $exception2->getMessage()],
+                    ['result' => 'error', 'message' => $exception->getMessage()]
+                ];
+            }
+            if ($is_error_must_see)
+                throw $exception;
+            return [['result' => 'error', 'message' => $exception->getMessage()]];
         }
-        $tg->save_chat_state();
         return self::$results;
     }
 

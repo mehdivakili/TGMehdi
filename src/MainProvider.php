@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use TGMehdi\Commands\InstallCommand;
 use TGMehdi\Commands\DevCommand;
+use TGMehdi\Events\ErrorEvent;
 use TGMehdi\Events\LogRedisCommand;
 
 class MainProvider extends ServiceProvider

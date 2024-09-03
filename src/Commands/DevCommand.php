@@ -18,7 +18,7 @@ class DevCommand extends Command
 
             try {
                 foreach (config('tgmehdi.bots') as $bot => $config) {
-                    Http::get(route('tgmehdi.local_bot', ['bot_name' => $bot]))->throw()->json();
+                    Http::get(route('tgmehdi.local_bot', ['bot_name' => $bot]), ['be_seen' => true])->throw()->json();
                 }
             } catch (\Exception $e) {
                 $this->error($e->getMessage());
