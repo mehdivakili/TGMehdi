@@ -12,7 +12,7 @@ class InlineMessage
 
     public function render(TelegramBot $bot)
     {
-        $s = general_call($bot, $this->view, ['inline_keyboard' => $this->keyboard], $this->view, 'return');
+        $s = general_call($bot, $this->view, ['inline_keyboard' => $this->keyboard], null, 'return');
         if ($s and !($s instanceof InlineMessage)) {
             if (is_array($s) and !isset($s['reply_markup'])) {
                 $s['reply_markup'] = $this->keyboard->render();
