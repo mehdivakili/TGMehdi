@@ -11,6 +11,7 @@ use TGMehdi\Facades\ChatFacade;
 use TGMehdi\Routing\BotRout;
 use TGMehdi\Routing\Middlewares\MiddlewareContract;
 use TGMehdi\States\StateBase;
+use TGMehdi\Types\ReplyKeyboard;
 
 class TelegramBot
 {
@@ -143,6 +144,9 @@ class TelegramBot
 
     public function set_keyboard($keyboard)
     {
+        if($this->keyboard and $this->keyboard instanceof ReplyKeyboard) {
+            $this->send_reply("",[]);
+        }
         $this->keyboard = $keyboard;
     }
 

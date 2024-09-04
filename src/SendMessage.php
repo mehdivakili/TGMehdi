@@ -62,10 +62,12 @@ trait SendMessage
                 $post_params['reply_markup'] = json_encode($this->keyboard);
             elseif (is_string($this->keyboard))
                 $post_params['reply_markup'] = $this->keyboard;
-            elseif ($this->keyboard instanceof InlineKeyboard) {
+            elseif ($this->keyboard instanceof InlineKeyboard and str_starts_with($url, "edit")) {
                 $post_params['reply_markup'] = $this->keyboard->render();
+                $this->keyboard = null;
             } elseif ($this->keyboard instanceof ReplyKeyboard and str_starts_with($url, "send")) {
                 $post_params['reply_markup'] = $this->keyboard->render();
+                $this->keyboard = null;
             }
         }
         if ($has_file)
