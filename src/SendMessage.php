@@ -61,7 +61,7 @@ trait SendMessage
             $url = $this->old_reply['url'];
             $this->old_reply = null;
         }
-        if ($this->keyboard and !$this->keyboard->is_sended and $url and empty($post_params['reply_markup']) and str_starts_with($url, 'send')) {
+        if ($this->keyboard and !$this->keyboard->is_sended and $url and empty($post_params['reply_markup'])) {
             $post_params['reply_markup'] = $this->keyboard->render();
         }
         if ($url != "") {
