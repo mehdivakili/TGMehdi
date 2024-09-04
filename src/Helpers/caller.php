@@ -96,16 +96,16 @@ if (!function_exists('general_call')) {
             return false;
         } else if ($tg and $func instanceof \TGMehdi\Types\InlineMessage) {
             $s = $func->render($tg);
-            $text = $s['text'];
-            $options = ['reply_markup' => $s['reply_markup']];
-            if (($message_status == 'edit') or (is_null($message_status) and $tg->get_update_type() == 'callback_query')) {
-                $tg->edit_message_text($text, options: $options);
-            } else {
-                $tg->send_text($text, $options);
+            if (!empty($s['text'])) {
+                $text = $s['text'];
+                $options = ['reply_markup' => $s['reply_markup']];
+                if (($message_status == 'edit') or (is_null($message_status) and $tg->get_update_type() == 'callback_query')) {
+                    $tg->edit_message_text($text, options: $options);
+                } else {
+                    $tg->send_text($text, $options);
 
+                }
             }
-            $s = $func->render($tg);
-            $tg->edit_message_text($s['text'], options: ['reply_markup' => $s['reply_markup']]);
         }
 
         return $func;
