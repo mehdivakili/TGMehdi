@@ -70,12 +70,16 @@ trait SendMessage
                 }
             }
         }
-        if ($has_file)
-            $res = $request->post($this->bot_url . '/' . $url, $post_params);
-        else
-            $res = Http::connectTimeout(20)->withOptions(['proxy' => config('tgmehdi.proxy', null), 'verify' => false])->post($this->bot_url . '/' . $url, $post_params);
-        BotController::add_res($res->json());
-        return $res->json();
+        if ($url != "") {
+            if ($has_file)
+                $res = $request->post($this->bot_url . '/' . $url, $post_params);
+            else
+                $res = Http::connectTimeout(20)->withOptions(['proxy' => config('tgmehdi.proxy', null), 'verify' => false])->post($this->bot_url . '/' . $url, $post_params);
+
+            BotController::add_res($res->json());
+            return $res->json();
+        }
+        return false;
     }
 
     public
