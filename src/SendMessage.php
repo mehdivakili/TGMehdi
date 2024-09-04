@@ -45,6 +45,10 @@ trait SendMessage
             if (!isset($post_params['parse_mode'])) {
                 $post_params['parse_mode'] = config('tgmehdi.parse_mode');
             }
+            if ($this->keyboard and !isset($post_params['reply_markup']) and $this->keyboard instanceof InlineKeyboard and str_starts_with($url, 'edit')) {
+                $post_params['reply_markup'] = $this->keyboard->render();
+                $this->keyboard = null;
+            }
         }
         if (!$immediately) {
             $old_reply = $this->old_reply;
@@ -58,13 +62,10 @@ trait SendMessage
 
         }
         if ($this->keyboard) {
-            if (is_array($this->keyboard))
+            if (is_array($this->keyboard)) {
                 $post_params['reply_markup'] = json_encode($this->keyboard);
-            elseif (is_string($this->keyboard))
+            } elseif (is_string($this->keyboard)) {
                 $post_params['reply_markup'] = $this->keyboard;
-            elseif ($this->keyboard instanceof InlineKeyboard and str_starts_with($url, "edit")) {
-                $post_params['reply_markup'] = $this->keyboard->render();
-                $this->keyboard = null;
             } elseif ($this->keyboard instanceof ReplyKeyboard and str_starts_with($url, "send")) {
                 $post_params['reply_markup'] = $this->keyboard->render();
                 $this->keyboard = null;
@@ -79,7 +80,8 @@ trait SendMessage
         return $res->json();
     }
 
-    public function send_text($text, $immediately = false)
+    public
+    function send_text($text, $immediately = false)
     {
         $rs = $this->send_reply('sendMessage', ['text' => $text], $immediately);
         if (!isset($rs['result']))
@@ -88,38 +90,45 @@ trait SendMessage
         return $this->message_init($rs["result"], "sent");
     }
 
-    public function send_photo($photo, $caption)
+    public
+    function send_photo($photo, $caption)
     {
 
         return $this->message_init($this->send_reply('sendPhoto', ["photo" => $photo, "caption" => $caption])['result'], "sent");
     }
 
-    public function send_audio($audio, $caption)
+    public
+    function send_audio($audio, $caption)
     {
         return $this->message_init($this->send_reply('sendAudio', ["audio" => $audio, "caption" => $caption])['result'], "sent");
     }
 
-    public function send_document($document, $caption)
+    public
+    function send_document($document, $caption)
     {
         return $this->message_init($this->send_reply('sendDocument', ["document" => $document, "caption" => $caption])['result'], "sent");
     }
 
-    public function send_video($video, $caption)
+    public
+    function send_video($video, $caption)
     {
         return $this->message_init($this->send_reply('sendVideo', ["video" => $video, "caption" => $caption])['result'], "sent");
     }
 
-    public function send_video_note($video, $caption)
+    public
+    function send_video_note($video, $caption)
     {
         return $this->message_init($this->send_reply('sendVideoNote', ["videoNote" => $video, "caption" => $caption])['result'], "sent");
     }
 
-    public function send_chat_action($action)
+    public
+    function send_chat_action($action)
     {
         return $this->send_reply('sendChatAction', ["action" => $action])['result'];
     }
 
-    public function create_chat_invite_link($chat_id, $name = null)
+    public
+    function create_chat_invite_link($chat_id, $name = null)
     {
         $options = ["chat_id" => $chat_id];
         if (!empty($name))
@@ -127,17 +136,20 @@ trait SendMessage
         return $this->send_reply('createChatInviteLink', $options, true)['result'];
     }
 
-    public function send_poll($question, $options, $type = 'regular')
+    public
+    function send_poll($question, $options, $type = 'regular')
     {
         $this->send_reply('sendPoll', ["question" => $question, 'options' => $options, 'type' => $type])['result'];
     }
 
-    public function delete_message($message_id)
+    public
+    function delete_message($message_id)
     {
         $this->send_reply('deleteMessage', ["message_id" => $message_id], true)['result'];
     }
 
-    public function answer_callback($text, $options = [])
+    public
+    function answer_callback($text, $options = [])
     {
         $options['callback_query_id'] = $this->callback_model->id;
         $options['text'] = $text;
@@ -146,17 +158,20 @@ trait SendMessage
         ])->post($this->bot_url . '/' . 'answerCallbackQuery', $options);
     }
 
-    public function get_chat_member($chat_id, $user_id)
+    public
+    function get_chat_member($chat_id, $user_id)
     {
         return $this->send_reply('getChatMember', ['user_id' => $user_id, 'chat_id' => $chat_id], true);
     }
 
-    public function get_chat($chat_id)
+    public
+    function get_chat($chat_id)
     {
         return $this->send_reply('getChat', ['chat_id' => $chat_id], true);
     }
 
-    public function edit_message_text($text, $message = null, $options = [])
+    public
+    function edit_message_text($text, $message = null, $options = [])
     {
         if ($message != null) {
             $options['message_id'] = $message;
