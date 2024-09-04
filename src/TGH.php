@@ -12,7 +12,6 @@ class TGH
         return general_call($telegramBot, $func, $args);
     }
 
-
     public static function goto_stat($status, $func = null, $keyboard = null)
     {
         return function (TelegramBot $telegramBot, $args) use ($keyboard, $status, $func) {
@@ -81,6 +80,4 @@ class TGH
             self::general_call($telegramBot, $function, $args);
         };
     }
-
-
 }

@@ -1,16 +1,15 @@
 <?php
 
 
-namespace TGMehdi;
+namespace TGMehdi\TGTraits;
 
 
+use Illuminate\Support\Facades\Http;
+use Illuminate\View\View;
+use TGMehdi\BotController;
 use TGMehdi\Types\InlineKeyboard;
 use TGMehdi\Types\ReplyKeyboard;
-use TGMehdi\Types\TelegramBaseKeyboard;
 use TGMehdi\Types\TelegramFile;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\View\View;
 
 
 trait SendMessage

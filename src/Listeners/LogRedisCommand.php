@@ -1,6 +1,6 @@
 <?php
 
-namespace TGMehdi\Events;
+namespace TGMehdi\Listeners;
 
 use Illuminate\Support\Facades\Context;
 

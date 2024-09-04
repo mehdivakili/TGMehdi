@@ -7,34 +7,28 @@ namespace TGMehdi;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Storage;
-use TGMehdi\Facades\ChatFacade;
 use TGMehdi\Routing\BotRout;
 use TGMehdi\Routing\Middlewares\MiddlewareContract;
 use TGMehdi\States\StateBase;
+use TGMehdi\TGTraits\SendApis;
+use TGMehdi\TGTraits\SendMessage;
+use TGMehdi\TGTraits\SetData;
 
 class TelegramBot
 {
     use SendMessage;
-
+    use SendApis;
+    use SetData;
 
     public $token;
     public $bot_url;
 
-    public $data;
-    public $chat_id;
-    public $chat_type;
-    public $chat_status;
-    private $original_chat_status;
-
     public $keyboard;
     public $reply_message_id;
-    private $chat;
+    public $chat;
     public $message;
 
-    private array $chat_data;
-    private bool $chat_data_changed = false;
-    private bool $chat_temp_delete = false;
-    /**
+       /**
      * @var false|string
      */
     public $update_types = ["message", 'callback_query', 'my_chat_member', 'chat_member', 'chat_boost', 'removed_chat_boost'];
@@ -44,7 +38,6 @@ class TelegramBot
      */
     public $update;
 
-    public StateBase|null $state_class = null;
     /**
      * @var false|mixed|string
      */
@@ -69,31 +62,6 @@ class TelegramBot
     }
 
 
-    public function data_init($r)
-    {
-        $this->data = $r;
-        $this->update_type = $this->get_update_type();
-        if (!$this->update_type) {
-            die(200);
-        }
-        $input_class = BotKernel::$input_parsers[$this->update_type];
-        $this->input = new $input_class();
-        $this->input->parse_input($this);
-        $chat_data = $this->input->chat_data();
-        $this->chat_id = $chat_data['id'];
-        $this->chat_type = $chat_data['type'];
-        if (empty($this->bot['cache_optimization'])) {
-            $this->chat();
-        } else {
-            $this->chat_data();
-            $this->chat_status = $this->chat_data('status');
-            $this->original_chat_status = $this->chat_data('original_status');
-            if (!$this->original_chat_status)
-                $this->chat();
-        }
-    }
-
-
     public function get_update_type()
     {
         $d = array_keys($this->data);
@@ -103,32 +71,6 @@ class TelegramBot
             }
         }
         return false;
-    }
-
-
-    public function set_webhook()
-    {
-        $site_url = route('tgmehdi.bot', ['bot_name' => $this->bot['name']]);
-        $token = $this->token;
-        $secret_token = $this->bot['secret_token'];;
-        return Http::connectTimeout(20)->withOptions(['proxy' => config('tgmehdi.proxy', null), 'verify' => false
-
-        ])->get("https://api.telegram.org/bot$token/setWebhook?url=$site_url"
-            . (($secret_token) ? "&secret_token=$secret_token" : '')
-            . "&allowed_updates=" . json_encode($this->update_types));
-    }
-
-    public function delete_webhook()
-    {
-        return Http::connectTimeout(20)->withOptions(['proxy' => config('tgmehdi.proxy', null), 'verify' => false
-
-        ])->get("https://api.telegram.org/bot{$this->token}/deleteWebhook?drop_pending_updates=True");
-    }
-
-    public function restart_webhook()
-    {
-        $this->delete_webhook();
-        return $this->set_webhook();
     }
 
 
@@ -181,71 +123,6 @@ class TelegramBot
         return $file_path . '/' . $file_download_path;
     }
 
-    public function change_status($status = 0)
-    {
-        if (!empty($this->state_class)) {
-            $this->state_class->beforeExit();
-            if (!$this->state_class->canExit()) {
-                return false;
-            }
-        }
-        if ($status instanceof StateBase) {
-            $status->beforeEnter();
-            if ($status->canEnter()) {
-                $this->state_class?->afterExit();
-                $status->afterEnter();
-                $this->state_class = $status;
-            } else {
-                return false;
-            }
-            $status = $status->getEnterState();
-        }
-        if (!str_starts_with($status, '.')) $status = '.' . $status;
-        if (!str_ends_with($status, '.')) $status = $status . '.';
-        if ($status != '.same.') {
-            $this->chat_status = $status;
-            $this->chat_data('status', $status);
-            $this->set_state($status);
-        }
-        return true;
-    }
-
-    public function temp($key = null, $text = null)
-    {
-        if (empty($this->bot['cache_optimization']) and $this->bot['cache_optimization'] == false) {
-            if ($text === null) {
-                $d = json_decode($this->chat->temp_text, true);
-                if (in_array($key, array_keys($d))) {
-                    return $d[$key];
-                }
-                return "";
-            }
-            $data = json_decode($this->chat->temp_text, true);
-            $data[$key] = $text;
-            $this->chat->temp_text = json_encode($data);
-            $this->chat->save();
-            return $text;
-        } else {
-            if (!isset($this->chat_temp))
-                $this->chat_temp = Redis::hgetall("{$this->bot['name']}_chat_{$this->chat_id}.temp");
-            if (!is_null($text))
-                $this->chat_temp[$key] = $text;
-            if (is_null($key))
-                return $this->chat_temp;
-            if (isset($this->chat_temp[$key]))
-                return $this->chat_temp[$key];
-            return null;
-        }
-    }
-
-    public function del_temp($key = null)
-    {
-        if (!is_null($key)) {
-            unset($this->chat_temp[$key]);
-        } else {
-            $this->chat_temp = [];
-        }
-    }
 
     public function pass_middlewares($middleware)
     {
@@ -277,27 +154,6 @@ class TelegramBot
 
     }
 
-    private
-    function chat_find_or_create()
-    {
-        $chat = ChatFacade::where('chat_id', $this->chat_id)->where('bot_name', $this->bot['name'])->first();
-        if (empty($chat)) {
-            $chat = app("tgmehdi.chat");
-            $chat->chat_id = $this->chat_id;
-            $chat->bot_name = $this->bot['name'];
-            $chat->type = $this->chat_type;
-            $chat->status = '.start.';
-            $chat->temp_text = '{}';
-            if (in_array($chat->type, $this->bot['allowed_chats'])) {
-                $chat->save();
-            }
-        }
-        $this->chat = $chat;
-        $this->chat_status = $this->chat->status;
-        $this->original_chat_status = $this->chat->status;
-        $this->chat_data('status', $this->chat_status);
-        $this->chat_data('original_status', $this->original_chat_status);
-    }
 
     public function chat($rewrite = false)
     {
@@ -315,28 +171,6 @@ class TelegramBot
         $this->chat_id = $t;
     }
 
-    public function set_state(mixed $real_status)
-    {
-        $states = [];
-        foreach (StateBase::$states as $state) {
-            if ($state['type'] != 'state') continue;
-            if ($state['stay'] and str_starts_with($real_status, $state['state']->getState())) {
-                $states[$state['state']->getState()] = $state['state'];
-            }
-        }
-        ksort($states);
-
-        foreach ($states as $state) {
-            $state->init($this);
-            $state->beforeStay();
-            if ($state->canStay()) {
-                $state->afterStay();
-            } else {
-                return false;
-            }
-        }
-        return true;
-    }
 
     public function message_init($s)
     {
@@ -380,48 +214,4 @@ class TelegramBot
         return general_call($this, $func, $args, $this->state_class);
     }
 
-    public function save_chat_state()
-    {
-        if (empty($this->bot['cache_optimization'])) {
-            $this->chat()->status = $this->chat_status;
-            $this->chat->save();
-        } else {
-            if ($this->chat_status != ".same." or $this->chat_status != $this->original_chat_status) {
-                if (isset($this->chat_temp) and empty($this->chat_temp)) {
-                    Redis::unlink("{$this->bot['name']}_chat_{$this->chat_id}.temp");
-                } else if (isset($this->chat_temp)) {
-                    Redis::hmset("{$this->bot['name']}_chat_{$this->chat_id}.temp", $this->temp());
-                }
-                $orig_status = $this->chat_data('original_status');
-                $s = $this->chat_status;
-                if (empty($orig_status)) {
-                    $chat = $this->chat();
-                    if ($chat->status != $s) {
-                        $chat->status = $s;
-                        $chat->save();
-                    }
-                }
-                if ($this->chat_data_changed)
-                    Redis::hmset("{$this->bot['name']}_chat_{$this->chat_id}.data", $this->chat_data());
-            }
-        }
-
-    }
-
-    public function chat_data($key = null, $value = null)
-    {
-        if (!isset($this->chat_data))
-            $this->chat_data = Redis::hgetall("{$this->bot['name']}_chat_{$this->chat_id}.data");
-        if (is_null($this->chat_data))
-            $this->chat_data = [];
-        if (!is_null($value)) {
-            $this->chat_data[$key] = $value;
-            $this->chat_data_changed = true;
-        }
-        if (is_null($key))
-            return $this->chat_data;
-        if (isset($this->chat_data[$key]))
-            return $this->chat_data[$key];
-        return null;
-    }
 }

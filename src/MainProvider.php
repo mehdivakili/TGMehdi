@@ -6,13 +6,21 @@ use Illuminate\Foundation\Console\AboutCommand;
 use Illuminate\Redis\Events\CommandExecuted;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
-use TGMehdi\Commands\InstallCommand;
 use TGMehdi\Commands\DevCommand;
-use TGMehdi\Events\ErrorEvent;
-use TGMehdi\Events\LogRedisCommand;
+use TGMehdi\Commands\InstallCommand;
+use TGMehdi\Events\Routing\AfterUpdateType;
+use TGMehdi\Listeners\ChatEventHandler;
+use TGMehdi\Listeners\LoadInputParser;
+use TGMehdi\Listeners\LogRedisCommand;
+use TGMehdi\Listeners\TGEventHandler;
 
 class MainProvider extends ServiceProvider
 {
+    public function provides()
+    {
+
+    }
+
     public function register()
     {
         $this->mergeConfigFrom(
@@ -28,6 +36,14 @@ class MainProvider extends ServiceProvider
         foreach (glob(__DIR__ . '/Helpers/*.php') as $filename) {
             require_once $filename;
         }
+    }
+
+    public function registerEvents()
+    {
+        Event::listen(AfterUpdateType::class, LoadInputParser::class);
+        Event::subscribe(ChatEventHandler::class);
+        Event::listen(CommandExecuted::class, LogRedisCommand::class);
+        Event::subscribe(TGEventHandler::class);
     }
 
     public function boot()
@@ -63,11 +79,7 @@ class MainProvider extends ServiceProvider
                 DevCommand::class,
             ]);
         }
-        Event::listen(
-            CommandExecuted::class,
-            LogRedisCommand::class,
-        );
-
+        $this->registerEvents();
 
     }
 }

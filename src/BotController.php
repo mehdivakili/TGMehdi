@@ -4,18 +4,22 @@ namespace TGMehdi;
 
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
-use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Context;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Redis;
 use TGMehdi\Controllers\TGMehdi;
-use TGMehdi\Events\ErrorEvent;
-use TGMehdi\Routing\BotRout;
+use TGMehdi\Events\Command\AfterCommandCheck;
+use TGMehdi\Events\Command\AfterCommandExecuted;
+use TGMehdi\Events\Command\BeforeCommandCheck;
+use TGMehdi\Events\Routing\AfterGetRoutes;
+use TGMehdi\Events\Routing\AfterSetState;
+use TGMehdi\Events\Routing\BeforeDataReceived;
+use TGMehdi\Events\Routing\BeforeGetRoutes;
+use TGMehdi\Events\Routing\BeforeSetState;
+use TGMehdi\Events\Telegram\ErrorEvent;
+use TGMehdi\Events\Telegram\RequestIsDone;
+use TGMehdi\Events\Telegram\TGFinished;
+use TGMehdi\Events\Telegram\TGInitialized;
 use TGMehdi\Routing\TGRout;
-use TGMehdi\States\StateBase;
-use TGMehdi\Types\ReplyKeyboard;
 
 class BotController extends Controller
 {
@@ -86,14 +90,10 @@ class BotController extends Controller
     {
         $tg->switch_bot($bot_name);
         try {
+            TGInitialized::dispatch($tg);
             $this->bot_without_delayed_message($tg, $request);
-            if (!$tg->send_reply('', [])
-                and $tg->keyboard
-                and $tg->keyboard instanceof ReplyKeyboard) {
-                if ($tg->state_class and $tg->state_class->getDefaultText() != "test")
-                    $tg->send_text($tg->state_class->getDefaultText(), true);
-            }
-            $tg->save_chat_state();
+            RequestIsDone::dispatch($tg);
+            TGFinished::dispatch($tg);
         } catch (\Exception $exception) {
             if (isset($tg->bot['debug']) and $tg->bot['debug']) {
                 $tg->send_text($exception->getMessage(), true);
@@ -123,10 +123,14 @@ class BotController extends Controller
         if ($this->r == null) {
             $this->r = $request->all();
         }
-        $telegramBot->data_init($this->r);
+        BeforeDataReceived::dispatch($telegramBot, $this->r);
         $real_status = $telegramBot->chat_status;
-        $routes_with_pr = TGRout::get_routes($telegramBot->bot['route'], $telegramBot->chat_type, $real_status)[$telegramBot->chat_type];
+        BeforeSetState::dispatch($telegramBot, $real_status);
         $telegramBot->set_state($real_status);
+        AfterSetState::dispatch($telegramBot, $real_status);
+        BeforeGetRoutes::dispatch($telegramBot, $real_status);
+        $routes_with_pr = TGRout::get_routes($telegramBot->bot['route'], $telegramBot->chat_type, $real_status)[$telegramBot->chat_type];
+        AfterGetRoutes::dispatch($telegramBot, $routes_with_pr);
         $pr = array_keys($routes_with_pr);
         sort($pr);
         $pr = array_reverse($pr);
@@ -139,8 +143,12 @@ class BotController extends Controller
                 if (!str_starts_with($real_status, $status)) continue;
                 foreach ($routes[$status] as $command) {
                     $command->set_tg($telegramBot);
+                    BeforeCommandCheck::dispatch($telegramBot, $command);
                     if ($command->is_support_input($telegramBot->input) and $command->can_execute()) {
-                        return $command->execute();
+                        AfterCommandCheck::dispatch($telegramBot, $command);
+                        $s = $command->execute();
+                        AfterCommandExecuted::dispatch($telegramBot, $command, $s);
+                        return $s;
                     }
                 }
             }
