@@ -45,9 +45,11 @@ trait SendMessage
             if (!isset($post_params['parse_mode'])) {
                 $post_params['parse_mode'] = config('tgmehdi.parse_mode');
             }
-            if ($this->keyboard and !isset($post_params['reply_markup']) and ($this->keyboard instanceof InlineKeyboard) and str_starts_with($url, 'edit')) {
-                $post_params['reply_markup'] = $this->keyboard->render();
-                $this->keyboard = null;
+            if (empty($post_params['reply_markup']) and str_starts_with($url, 'edit')) {
+                if ($this->keyboard instanceof InlineKeyboard) {
+                    $post_params['reply_markup'] = $this->keyboard->render();
+                    $this->keyboard = null;
+                }
             }
             if (!$immediately) {
                 $old_reply = $this->old_reply;
@@ -65,14 +67,12 @@ trait SendMessage
             $url = $this->old_reply['url'];
             $this->old_reply = null;
         }
-        if ($this->keyboard and $url) {
+        if ($this->keyboard and $url and empty($post_params['reply_markup'])) {
             if (is_array($this->keyboard)) {
                 $post_params['reply_markup'] = json_encode($this->keyboard);
-            } elseif
-            (is_string($this->keyboard)) {
+            } elseif (is_string($this->keyboard)) {
                 $post_params['reply_markup'] = $this->keyboard;
-            } elseif
-            (($this->keyboard instanceof ReplyKeyboard) and str_starts_with($url, 'send')) {
+            } elseif (($this->keyboard instanceof ReplyKeyboard) and str_starts_with($url, 'send')) {
                 $post_params['reply_markup'] = $this->keyboard->render();
                 $this->keyboard = null;
             }

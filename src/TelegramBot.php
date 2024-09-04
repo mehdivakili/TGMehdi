@@ -11,6 +11,7 @@ use TGMehdi\Facades\ChatFacade;
 use TGMehdi\Routing\BotRout;
 use TGMehdi\Routing\Middlewares\MiddlewareContract;
 use TGMehdi\States\StateBase;
+use TGMehdi\Types\InlineKeyboard;
 use TGMehdi\Types\ReplyKeyboard;
 
 class TelegramBot
@@ -144,8 +145,8 @@ class TelegramBot
 
     public function set_keyboard($keyboard)
     {
-        if($this->keyboard and $keyboard and ($this->keyboard instanceof ReplyKeyboard)) {
-            $this->send_reply("",[]);
+        if ($this->keyboard and $keyboard and ($this->keyboard instanceof ReplyKeyboard)) {
+            $this->send_reply("", []);
         }
         $this->keyboard = $keyboard;
     }
@@ -350,13 +351,13 @@ class TelegramBot
 
     public function send_keyboard($keyboard)
     {
-//        if ($keyboard instanceof InlineKeyboard) {
-//            $options['message_id'] = $this->message_object['message_id'];
-//            $options['reply_markup'] = $keyboard->render();
-//            $this->send_reply('editMessageReplyMarkup', $options, true);
-//        } else {
-        $this->set_keyboard($keyboard);
-//        }
+        if ($keyboard instanceof InlineKeyboard and $this->update_type == 'callback_query') {
+            $options['message_id'] = $this->message_object['message_id'];
+            $options['reply_markup'] = $keyboard->render();
+            $this->send_reply('editMessageReplyMarkup', $options, true);
+        } else {
+            $this->set_keyboard($keyboard);
+        }
     }
 
     public function switch_bot($bot_name)
