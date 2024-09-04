@@ -49,25 +49,32 @@ trait SendMessage
                 $post_params['reply_markup'] = $this->keyboard->render();
                 $this->keyboard = null;
             }
-            if (!$immediately and $this->old_reply) {
+            if (!$immediately) {
                 $old_reply = $this->old_reply;
                 $this->old_reply = ['has_file' => $has_file, 'request' => $request ?? null, 'post_params' => $post_params, 'url' => $url];
+                if (!$old_reply) return false;
                 $has_file = $old_reply['has_file'];
                 $request = $old_reply['request'];
                 $post_params = $old_reply['post_params'];
                 $url = $old_reply['url'];
             }
-            if ($this->keyboard) {
-                if (is_array($this->keyboard)) {
-                    $post_params['reply_markup'] = json_encode($this->keyboard);
-                } elseif
-                (is_string($this->keyboard)) {
-                    $post_params['reply_markup'] = $this->keyboard;
-                } elseif
-                ($this->keyboard instanceof ReplyKeyboard) {
-                    $post_params['reply_markup'] = $this->keyboard->render();
-                    $this->keyboard = null;
-                }
+        } else if ($this->old_reply) {
+            $has_file = $this->old_reply['has_file'];
+            $request = $this->old_reply['request'];
+            $post_params = $this->old_reply['post_params'];
+            $url = $this->old_reply['url'];
+            $this->old_reply = null;
+        }
+        if ($this->keyboard and $url) {
+            if (is_array($this->keyboard)) {
+                $post_params['reply_markup'] = json_encode($this->keyboard);
+            } elseif
+            (is_string($this->keyboard)) {
+                $post_params['reply_markup'] = $this->keyboard;
+            } elseif
+            (($this->keyboard instanceof ReplyKeyboard) and str_starts_with($url, 'send')) {
+                $post_params['reply_markup'] = $this->keyboard->render();
+                $this->keyboard = null;
             }
         }
         if ($url != "") {
