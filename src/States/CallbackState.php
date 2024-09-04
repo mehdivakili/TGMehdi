@@ -3,6 +3,7 @@
 namespace TGMehdi\States;
 
 use TGMehdi\Routing\BotRout;
+use TGMehdi\Types\InlineMessage;
 
 class CallbackState extends StateBase
 {
@@ -15,6 +16,7 @@ class CallbackState extends StateBase
     {
         $regexes = $this->getRegexes();
         foreach ($regexes as $regex => $action) {
+            $action = (is_null($this->keyboard)) ? $action : new InlineMessage($this->keyboard, $action);
             BotRout::callback($regex, $action, $this->getState());
         }
     }
