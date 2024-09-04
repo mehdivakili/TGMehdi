@@ -28,7 +28,7 @@ class TelegramBot
     public $chat_status;
     private $original_chat_status;
 
-    public $keyboard;
+    public null|ReplyKeyboard $keyboard;
     public $reply_message_id;
     private $chat;
     public $message;
@@ -56,7 +56,7 @@ class TelegramBot
 
     public function __construct()
     {
-        $this->keyboard = false;
+        $this->keyboard = null;
         $this->reply_message_id = false;
 
 
@@ -143,9 +143,9 @@ class TelegramBot
         }
     }
 
-    public function set_keyboard($keyboard)
+    public function set_keyboard(ReplyKeyboard $keyboard)
     {
-        if ($this->keyboard and $keyboard and ($this->keyboard instanceof ReplyKeyboard)) {
+        if ($this->keyboard) {
             $this->send_reply("", []);
         }
         $this->keyboard = $keyboard;

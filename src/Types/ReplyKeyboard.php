@@ -11,6 +11,7 @@ class ReplyKeyboard extends TelegramBaseKeyboard
             array()
         )
     );
+    public $is_sended = false;
 
     public function __construct($resize_keyboard = true, $one_time_keyboard = false, $selective = false)
     {
@@ -24,6 +25,12 @@ class ReplyKeyboard extends TelegramBaseKeyboard
     {
         if (count($this->keyboard['keyboard'][count($this->keyboard['keyboard']) - 1]))
             $this->keyboard['keyboard'][] = array();
+    }
+
+    public function render()
+    {
+        $this->is_sended = true;
+        return parent::render();
     }
 
     public function newButton($text, $options = [], $line = -1)

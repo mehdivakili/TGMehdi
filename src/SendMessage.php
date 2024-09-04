@@ -20,7 +20,6 @@ trait SendMessage
     public function send_reply($url, $post_params, $immediately = false)
     {
         if ($url != '') {
-            /*["chat_id" => $chat_id, "text" => $text, 'reply_markup' => $kb, "reply_to_message_id" => $reply];*/
             $post_params['chat_id'] = isset($post_params['chat_id']) ? $post_params['chat_id'] : $this->chat_id;
 
             if ($this->reply_message_id) {
@@ -45,12 +44,7 @@ trait SendMessage
             if (!isset($post_params['parse_mode'])) {
                 $post_params['parse_mode'] = config('tgmehdi.parse_mode');
             }
-            if (empty($post_params['reply_markup']) and str_starts_with($url, 'edit')) {
-                if ($this->keyboard instanceof InlineKeyboard) {
-                    $post_params['reply_markup'] = $this->keyboard->render();
-                    $this->keyboard = null;
-                }
-            }
+
             if (!$immediately) {
                 $old_reply = $this->old_reply;
                 $this->old_reply = ['has_file' => $has_file, 'request' => $request ?? null, 'post_params' => $post_params, 'url' => $url];
@@ -67,15 +61,8 @@ trait SendMessage
             $url = $this->old_reply['url'];
             $this->old_reply = null;
         }
-        if ($this->keyboard and $url and empty($post_params['reply_markup'])) {
-            if (is_array($this->keyboard)) {
-                $post_params['reply_markup'] = json_encode($this->keyboard);
-            } elseif (is_string($this->keyboard)) {
-                $post_params['reply_markup'] = $this->keyboard;
-            } elseif (($this->keyboard instanceof ReplyKeyboard) and str_starts_with($url, 'send')) {
-                $post_params['reply_markup'] = $this->keyboard->render();
-                $this->keyboard = null;
-            }
+        if ($this->keyboard and !$this->keyboard->is_sended and $url and empty($post_params['reply_markup']) and str_starts_with($url, 'send')) {
+            $post_params['reply_markup'] = $this->keyboard->render();
         }
         if ($url != "") {
             if ($has_file)
@@ -160,7 +147,7 @@ trait SendMessage
     public
     function answer_callback($text, $options = [])
     {
-        $options['callback_query_id'] = $this->callback_model->id;
+        $options['callback_query_id'] = $this->data['callback_query']['id'];
         $options['text'] = $text;
         $options['show_alert'] = true;
         return Http::connectTimeout(20)->withOptions(['proxy' => config('tgmehdi.proxy', null), 'verify' => false

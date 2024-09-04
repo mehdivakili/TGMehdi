@@ -4,6 +4,7 @@ namespace TGMehdi\States;
 
 use TGMehdi\Routing\BotRout;
 use TGMehdi\Types\InlineKeyboard;
+use TGMehdi\Types\InlineMessage;
 
 class PaginationState extends StateBase
 {
@@ -83,7 +84,7 @@ class PaginationState extends StateBase
 
     public function afterKeyboard()
     {
-        $this->exec($this->afterKeyboard);
+        $this->exec(new InlineMessage($this->keyboard, $this->afterKeyboard));
     }
 
     public function func($item, $index)
@@ -107,7 +108,6 @@ class PaginationState extends StateBase
     public function afterEnter()
     {
         $this->make_keyboard(0);
-        $this->bot->set_keyboard($this->keyboard);
         $this->afterKeyboard();
         return parent::afterEnter();
     }
@@ -154,8 +154,7 @@ class PaginationState extends StateBase
     public function handle($page = 0)
     {
         $this->make_keyboard($page);
-        $this->bot->set_keyboard($this->keyboard);
-        $this->afterKeyboard();
 
+        $this->afterKeyboard();
     }
 }

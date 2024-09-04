@@ -174,7 +174,7 @@ class StateBase
     function afterEnter()
     {
         if ($this->keyboard) {
-            $this->bot->send_keyboard($this->keyboard);
+            $this->bot->set_keyboard($this->keyboard);
         }
         return $this->exec($this->afterEnter);
 

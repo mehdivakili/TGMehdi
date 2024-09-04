@@ -35,7 +35,7 @@ class ChoiceState extends StateBase
 
     public function beforeEnter()
     {
-        if (!isset($this->keyboard)) {
+        if (!$this->keyboard) {
             $keyboard = new ReplyKeyboard();
             $choices = $this->getChoices();
             $choice_keys = array_keys($choices);

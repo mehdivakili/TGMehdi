@@ -87,9 +87,7 @@ class BotController extends Controller
         $tg->switch_bot($bot_name);
         try {
             $this->bot_without_delayed_message($tg, $request);
-            if (!$tg->send_reply('', [])
-                and $tg->keyboard
-                and ($tg->keyboard instanceof ReplyKeyboard)) {
+            if (!$tg->send_reply('', []) and $tg->keyboard and !$tg->keyboard->is_sended) {
                 if ($tg->state_class and $tg->state_class->getDefaultText() != "test")
                     $tg->send_text($tg->state_class->getDefaultText(), true);
             }
