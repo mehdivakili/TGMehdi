@@ -144,7 +144,7 @@ class TelegramBot
 
     public function set_keyboard($keyboard)
     {
-        if($this->keyboard and $this->keyboard instanceof ReplyKeyboard) {
+        if($this->keyboard and $keyboard and ($this->keyboard instanceof ReplyKeyboard)) {
             $this->send_reply("",[]);
         }
         $this->keyboard = $keyboard;

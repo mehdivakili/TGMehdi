@@ -45,37 +45,35 @@ trait SendMessage
             if (!isset($post_params['parse_mode'])) {
                 $post_params['parse_mode'] = config('tgmehdi.parse_mode');
             }
-            if ($this->keyboard and !isset($post_params['reply_markup']) and $this->keyboard instanceof InlineKeyboard and str_starts_with($url, 'edit')) {
+            if ($this->keyboard and !isset($post_params['reply_markup']) and ($this->keyboard instanceof InlineKeyboard) and str_starts_with($url, 'edit')) {
                 $post_params['reply_markup'] = $this->keyboard->render();
                 $this->keyboard = null;
             }
-        }
-        if (!$immediately) {
-            $old_reply = $this->old_reply;
-            if ($url != '')
+            if (!$immediately and $this->old_reply) {
+                $old_reply = $this->old_reply;
                 $this->old_reply = ['has_file' => $has_file, 'request' => $request ?? null, 'post_params' => $post_params, 'url' => $url];
-            if ($old_reply == null) return false;
-            $has_file = $old_reply['has_file'];
-            $request = $old_reply['request'];
-            $post_params = $old_reply['post_params'];
-            $url = $old_reply['url'];
-
-        }
-        if ($this->keyboard) {
-            if (is_array($this->keyboard)) {
-                $post_params['reply_markup'] = json_encode($this->keyboard);
-            } elseif (is_string($this->keyboard)) {
-                $post_params['reply_markup'] = $this->keyboard;
-            } elseif ($this->keyboard instanceof ReplyKeyboard and str_starts_with($url, "send")) {
-                $post_params['reply_markup'] = $this->keyboard->render();
-                $this->keyboard = null;
+                $has_file = $old_reply['has_file'];
+                $request = $old_reply['request'];
+                $post_params = $old_reply['post_params'];
+                $url = $old_reply['url'];
+            }
+            if ($this->keyboard) {
+                if (is_array($this->keyboard)) {
+                    $post_params['reply_markup'] = json_encode($this->keyboard);
+                } elseif
+                (is_string($this->keyboard)) {
+                    $post_params['reply_markup'] = $this->keyboard;
+                } elseif
+                ($this->keyboard instanceof ReplyKeyboard) {
+                    $post_params['reply_markup'] = $this->keyboard->render();
+                    $this->keyboard = null;
+                }
             }
         }
         if ($has_file)
             $res = $request->post($this->bot_url . '/' . $url, $post_params);
         else
-            $res = Http::connectTimeout(20)->withOptions(['proxy' => config('tgmehdi.proxy', null), 'verify' => false
-            ])->post($this->bot_url . '/' . $url, $post_params);
+            $res = Http::connectTimeout(20)->withOptions(['proxy' => config('tgmehdi.proxy', null), 'verify' => false])->post($this->bot_url . '/' . $url, $post_params);
         BotController::add_res($res->json());
         return $res->json();
     }
