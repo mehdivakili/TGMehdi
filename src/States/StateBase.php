@@ -5,6 +5,8 @@ namespace TGMehdi\States;
 use TGMehdi\Facades\TGFacade;
 use TGMehdi\Routing\BotRout;
 use TGMehdi\TelegramBot;
+use TGMehdi\Types\InlineKeyboard;
+use TGMehdi\Types\InlineMessage;
 
 class StateBase
 {
@@ -174,7 +176,10 @@ class StateBase
     function afterEnter()
     {
         if ($this->keyboard) {
-            $this->bot->set_keyboard($this->keyboard);
+            if ($this->keyboard instanceof InlineKeyboard)
+                return new InlineMessage($this->keyboard, $this->afterEnter);
+            else
+                $this->bot->set_keyboard($this->keyboard);
         }
         return $this->exec($this->afterEnter);
 
