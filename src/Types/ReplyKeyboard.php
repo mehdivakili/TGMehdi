@@ -13,11 +13,12 @@ class ReplyKeyboard extends TelegramBaseKeyboard
     );
     public $is_sended = false;
 
-    public function __construct($resize_keyboard = true, $one_time_keyboard = false, $selective = false)
+    public function __construct($resize_keyboard = true, $one_time_keyboard = false, $selective = false, $persistent = true)
     {
         $this->keyboard['resize_keyboard'] = $resize_keyboard;
         $this->keyboard['one_time_keyboard'] = $one_time_keyboard;
         $this->keyboard['selective'] = $selective;
+        $this->keyboard['persistent'] = $selective;
 
     }
 
