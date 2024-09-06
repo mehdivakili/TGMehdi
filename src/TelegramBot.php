@@ -203,7 +203,11 @@ class TelegramBot
             } else {
                 return false;
             }
-            $status = $status->getEnterState();
+            if($status->is_state_change){
+                $status = $status->getEnterState();
+            } else {
+                $status = ".same.";
+            }
         }
         if (!str_starts_with($status, '.')) $status = '.' . $status;
         if (!str_ends_with($status, '.')) $status = $status . '.';

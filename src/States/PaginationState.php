@@ -115,7 +115,7 @@ class PaginationState extends StateBase
     public function registerRoutes()
     {
         $p = $this->prefix;
-        BotRout::callback(["/^$p(\d+)?$/", ['page']], [$this, "handle"], '.');
+        BotRout::callback("$p{{page|number?0}}", [$this, "handle"])->set_state_class($this)->name($p);
         parent::registerRoutes();
     }
 

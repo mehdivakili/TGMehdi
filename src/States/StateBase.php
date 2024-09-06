@@ -13,13 +13,22 @@ class StateBase
 
     use StateHelper;
 
+    public string $state_key;
+    public bool $is_state_change = false;
+
 
     public static $states = [];
+    public $command_state;
+
+    public bool $route_registered = false;
 
     public static function add_state(StateBase $state, $stay = true, $key = null)
     {
         $key = $key ?? $state->get_goto_key();
         self::$states[$key] = ['type' => 'state', 'state' => $state, 'stay' => $stay];
+        $state->state_key = $key;
+        if (!$state->is_state_change)
+            $state->is_state_change = $stay;
     }
 
     public function get_goto_key()
@@ -27,18 +36,15 @@ class StateBase
         return get_class($this);
     }
 
-    public function __construct($state = null, $output_state = null, $add_to_states = true, $key = null, $stay_active = false)
+    public function __construct($key, $stay_active = false)
     {
-        if (!is_null($state)) {
-            $this->state = $state;
-        }
-        if (!is_null($output_state)) {
-            $this->output_state = $output_state;
+        if (!is_null($key)) {
+            $this->state = $key;
         }
         if (is_null($this->output_state)) {
             $this->output_state = $this->state;
         }
-        if ($this->state !== 'same' or $this->state != 'default') {
+        if (!is_null($key)) {
             if (!str_starts_with($this->state, '.')) $this->state = '.' . $this->state;
             if (!str_ends_with($this->state, '.')) $this->state = $this->state . '.';
             if (!str_starts_with($this->output_state, '.')) $this->output_state = '.' . $this->output_state;
@@ -48,7 +54,7 @@ class StateBase
             $this->output_state = $this;
             $stay_active = false;
         }
-        if ($add_to_states) {
+        if (!is_null($key)) {
             self::add_state($this, $stay_active, $key);
         }
     }
@@ -227,18 +233,19 @@ class StateBase
 
     public function registerRoutes()
     {
-        foreach ($this->getRegexes() as $type => $data) {
-            foreach ($data as $regex => $args) {
-                $function = $args[0];
-                $f = (is_callable($function) or is_array($function)) ? $function : [$this, $function];
-                $s = $this->getState();
-                switch ($type) {
-                    default:
-                        BotRout::any($regex, $f, $s);
+        if (!$this->route_registered) {
+            foreach ($this->getRegexes() as $type => $data) {
+                foreach ($data as $regex => $args) {
+                    $function = $args[0];
+                    $f = (is_callable($function) or is_array($function)) ? $function : [$this, $function];
+                    switch ($type) {
+                        default:
+                            BotRout::any($regex, $f);
+                    }
                 }
             }
+            $this->route_registered = true;
         }
-
     }
 
     public function canExit()
@@ -262,5 +269,21 @@ class StateBase
         return $this;
     }
 
+    public function getCommandState()
+    {
+        if (!is_null($this->command_state)) {
+            return $this->command_state;
+        }
+        return $this->getState();
+    }
+
+    public function setCommandState($state)
+    {
+        if (!str_starts_with($state, '.')) $state = '.' . $state;
+        if (!str_ends_with($state, '.')) $state = $state . '.';
+
+        $this->command_state = $state;
+        return $this;
+    }
 
 }

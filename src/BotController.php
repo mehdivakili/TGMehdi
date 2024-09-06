@@ -63,6 +63,7 @@ class BotController extends Controller
         echo "<hr>" . json_encode($j) . "<hr>";
         foreach ($j as $item) {
             $this->r = $item;
+            Cache::forever('update_id', cache('update_id') + 1);
             $res = $this->bot($tg, $request, $bot_name, !$be_seen);
             echo "<hr>" . json_encode($res) . "<hr>";
             $update_id = $item['update_id'];

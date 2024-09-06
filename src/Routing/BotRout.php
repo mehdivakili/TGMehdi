@@ -5,6 +5,7 @@ namespace TGMehdi\Routing;
 
 
 use TGMehdi\Routing\Commands\AlwaysCommand;
+use TGMehdi\Routing\Commands\NamedCommand;
 use TGMehdi\Routing\Commands\RegexCommand;
 use TGMehdi\Routing\Commands\SimpleCommand;
 use TGMehdi\Routing\Middlewares\AnyMiddleware;
@@ -52,6 +53,8 @@ class BotRout
             return new RegexCommand($input, []);
         } else if (is_array($input)) {
             return new RegexCommand($input[0], $input[1]);
+        } else if (str_contains($input, "{{")) {
+            return new NamedCommand($input);
         } else {
             return new SimpleCommand($input);
         }
@@ -96,26 +99,31 @@ class BotRout
             ->middleware((new AnyMiddleware($options['allowed_updates'])))
             ->middleware($options['middleware'])
             , $options['status'], $options['priority'], $options['state_class']);
+        return $command;
     }
 
     public static function default($action, $status = 'default', $allowed_updates = 'default', $middleware = 'default', $state_class = null, $priority = 0)
     {
         $options = self::get_options(['status' => $status, 'allowed_updates' => $allowed_updates, 'middleware' => $middleware, 'state_class' => $state_class, 'priority' => $priority]);
-        TGRout::add_command((new AlwaysCommand())
+        $command = (new AlwaysCommand())
             ->func($action)
             ->middleware((new AnyMiddleware($options['allowed_updates'])))
-            ->middleware($options['middleware'])
+            ->middleware($options['middleware']);
+        TGRout::add_command($command
             , $options['status'], $options['priority'], $options['state_class']);
+        return $command;
     }
 
     public static function update($updates, $action, $status = 'default', $middleware = 'default')
     {
         $options = self::get_options(['status' => $status, 'allowed_updates' => $updates, 'middleware' => $middleware]);
-        TGRout::add_command((new AlwaysCommand())
+        $command = (new AlwaysCommand())
             ->func($action)
             ->middleware((new AnyMiddleware($updates)))
-            ->middleware($options['middleware'])
+            ->middleware($options['middleware']);
+        TGRout::add_command($command
             , $options['status'], $options['priority'], $options['state_class']);
+        return $command;
     }
 
     public static function group($options, $callback)
@@ -140,6 +148,7 @@ class BotRout
             ->middleware((new OnlyMiddleware($options['allowed_updates'], $types)))
             ->middleware($options['middleware'])
             , $options['status'], $options['priority'], $options['state_class']);
+        return $command;
     }
 
     public static function except($types, $regex, $action, $status = 'default', $allowed_updates = 'default', $middleware = 'default', $state_class = null, $priority = 1)
@@ -150,6 +159,7 @@ class BotRout
             ->middleware((new ExceptMiddleware($options['allowed_updates'], $types)))
             ->middleware($options['middleware'])
             , $options['status'], $options['priority'], $options['state_class']);
+        return $command;
     }
 
     public static function callback($regex, $action, $status = 'default', $middleware = 'default', $state_class = null, $priority = 1)
@@ -160,6 +170,7 @@ class BotRout
             ->middleware((new AnyMiddleware($options['allowed_updates'])))
             ->middleware($options['middleware'])
             , $options['status'], $options['priority'], $options['state_class']);
+        return $command;
     }
 
     public static function state(StateBase $state)
@@ -174,7 +185,7 @@ class BotRout
         } else {
             $state = 'same';
         }
-        self::state((new StateBase($state, key: $key))
+        self::state((new StateBase($key))
             ->setAfterEnter($after_enter_func)
             ->setBeforeEnter($before_enter_func)
             ->setBeforeExit($before_exit_func)

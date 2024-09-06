@@ -10,27 +10,31 @@ trait StateHelper
 
     function goto($state, $data = [], $keys = [])
     {
-        if (is_string($state) and isset(StateBase::$states[$state])) {
-            switch (StateBase::$states[$state]['type']) {
-                case 'abbr':
-                    return $this->goto(StateBase::$states[$state]['state'], $data, $keys);
-                default:
-                    $state = StateBase::$states[$state]['state'];
-                    $state->init($this->bot);
-                    $f_d = [];
-                    if (!empty($keys)) {
-                        foreach ($data as $key => $value) {
-                            if (is_numeric($key) and count($keys) < $key)
-                                $f_d[$keys[$key]] = $value;
-                            else
-                                $f_d[$key] = $value;
+        if (is_string($state)) {
+            if (isset(StateBase::$states[$state])) {
+                switch (StateBase::$states[$state]['type']) {
+                    case 'abbr':
+                        return $this->goto(StateBase::$states[$state]['state'], $data, $keys);
+                    default:
+                        $state = StateBase::$states[$state]['state'];
+                        $state->init($this->bot);
+                        $f_d = [];
+                        if (!empty($keys)) {
+                            foreach ($data as $key => $value) {
+                                if (is_numeric($key) and count($keys) < $key)
+                                    $f_d[$keys[$key]] = $value;
+                                else
+                                    $f_d[$key] = $value;
+                            }
+                            $state->setData($f_d);
+                        } else {
+                            $state->setData($data);
                         }
-                        $state->setData($f_d);
-                    } else {
-                        $state->setData($data);
-                    }
-            }
+                }
 
+            } else {
+                throw new \Exception("State $state does not exist");
+            }
         }
         $this->bot->change_status($state);
     }

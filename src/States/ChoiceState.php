@@ -13,6 +13,8 @@ class ChoiceState extends StateBase
     protected $afterSuccess;
     protected $keyboardOrder = [-1];
 
+    public bool $is_state_change = true;
+
     public function setKeyboardOrder($o)
     {
         $this->keyboardOrder = $o;

@@ -5,13 +5,13 @@ namespace TGMehdi\Routing\Commands;
 use Illuminate\Support\Arr;
 use TGMehdi\Routing\Inputs\InputContract;
 
-class RegexCommand implements CommandContract
+class RegexCommand extends CommandBase implements CommandContract
 {
     use CommandHelper;
 
     private $matches;
 
-    private function combine($value,$key)
+    private function combine($value, $key)
     {
         $res = [];
         foreach ($value as $k => $v) {
@@ -34,7 +34,7 @@ class RegexCommand implements CommandContract
 
     public function get_extracted_args(): array
     {
-        return $this->combine(array_slice($this->matches,1), $this->keys);
+        return $this->combine(array_slice($this->matches, 1), $this->keys);
 
     }
 

@@ -8,6 +8,7 @@ trait CommandHelper
 {
     public $bot = null;
     public $state = null;
+    public $state_class = null;
     public $func = null;
     public $middleware = null;
 
@@ -20,6 +21,11 @@ trait CommandHelper
     public function set_state($state)
     {
         $this->state = $state;
+        return $this;
+    }
+
+    public function set_state_class($class){
+        $this->state_class = $class;
         return $this;
     }
 
@@ -50,7 +56,7 @@ trait CommandHelper
 
     public function execute()
     {
-        return general_call($this->bot, $this->func, $this->get_extracted_args(), $this->state);
+        return general_call($this->bot, $this->func, $this->get_extracted_args(), $this->state_class);
     }
 
 }

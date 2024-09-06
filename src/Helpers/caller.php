@@ -73,7 +73,7 @@ if (!function_exists('general_call')) {
         if (is_array($func) and key_exists(0, $func) and in_array($func[0], $global_commands)) {
             if ($func[0] == 'goto') {
 
-                $class = new StateBase(add_to_states: false);
+                $class = new StateBase('trash_state');
                 $class->init($tg);
                 if (count($func) == 3)
                     return $class->goto($func[1], $func[2], $args);
@@ -109,7 +109,7 @@ if (!function_exists('general_call')) {
                 if (($message_status == 'edit') or (is_null($message_status) and $tg->get_update_type() == 'callback_query')) {
                     $tg->edit_message_text($text, options: $options);
                 } else {
-                    $tg->send_text($text, $options);
+                    $tg->send_text($text, options: $options);
 
                 }
             }

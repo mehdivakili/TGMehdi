@@ -10,8 +10,7 @@ class FormState extends StateBase
 
     protected $filter;
     protected $success;
-
-
+    public bool $is_state_change = true;
     public function getRegexes()
     {
         return [

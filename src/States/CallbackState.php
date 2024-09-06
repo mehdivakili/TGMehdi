@@ -9,6 +9,7 @@ class CallbackState extends StateBase
 {
     protected $state = ".";
     protected $output_state = "same";
+    public $command_state = '.';
 
     protected $regex = [];
 
@@ -17,7 +18,7 @@ class CallbackState extends StateBase
         $regexes = $this->getRegexes();
         foreach ($regexes as $regex => $action) {
             $action = (is_null($this->keyboard)) ? $action : new InlineMessage($this->keyboard, $action);
-            BotRout::callback($regex, $action, $this->getState());
+            BotRout::callback($regex, $action, $this->getCommandState())->set_state_class($this);
         }
     }
 

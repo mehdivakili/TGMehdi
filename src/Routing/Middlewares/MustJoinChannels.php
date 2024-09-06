@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Redis;
 use TGMehdi\BotMiddleware;
 use TGMehdi\TelegramBot;
 use TGMehdi\Types\InlineKeyboard;
+use TGMehdi\Types\InlineMessage;
 
 class MustJoinChannels implements MiddlewareContract
 {
@@ -30,8 +31,7 @@ class MustJoinChannels implements MiddlewareContract
             if ($status == "left" or $status == "kicked") {
                 $keyboard = new InlineKeyboard();
                 $keyboard->newButton($args[0], options: ['url' => "https://t.me/" . substr($args[0], 1)]);
-                $telegramBot->set_keyboard($keyboard);
-                $telegramBot->send_text(__("tgmehdi.messages.you_must_join_channels"));
+                $telegramBot->send_text(new InlineMessage($keyboard,__("tgmehdi.messages.you_must_join_channels")));
                 return false;
             } else {
                 Redis::set($telegramBot->chat_id . '.join.' . $args[0], true, 86400);

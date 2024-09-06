@@ -69,7 +69,7 @@ trait SendMessage
                 $res = $request->post($this->bot_url . '/' . $url, $post_params);
             else
                 $res = Http::connectTimeout(20)->withOptions(['proxy' => config('tgmehdi.proxy', null), 'verify' => false])->post($this->bot_url . '/' . $url, $post_params);
-
+            echo "<hr>" . json_encode($post_params) . "<hr>";
             BotController::add_res($res->json());
             return $res->json();
         }
@@ -77,9 +77,9 @@ trait SendMessage
     }
 
     public
-    function send_text($text, $immediately = false)
+    function send_text($text, $immediately = false, $options = [])
     {
-        $rs = $this->send_reply('sendMessage', ['text' => $text], $immediately);
+        $rs = $this->send_reply('sendMessage', array_merge($options, ['text' => $text]), $immediately);
         if (!isset($rs['result']))
             return false;
 

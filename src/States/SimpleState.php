@@ -4,9 +4,10 @@ namespace TGMehdi\States;
 
 class SimpleState extends StateBase
 {
-    protected $regex = "/^.*$/";
+    protected $regex = null;
 
     protected $func;
+    protected $commands = null;
 
 
     function setRegex($regex)
@@ -21,17 +22,35 @@ class SimpleState extends StateBase
         return $this;
     }
 
+    function commands($command)
+    {
+        $this->commands = $command;
+        return $this;
+    }
+
     public function getRegexes()
     {
-        return [
-            'any' => [
-                $this->regex => ['handle']
-            ]
-        ];
+        if ($this->regex) {
+            return [
+                'any' => [
+                    $this->regex => ['handle']
+                ]
+            ];
+        } else {
+            return [];
+        }
     }
 
     public function handle()
     {
         $this->exec($this->func);
+    }
+
+    public function registerRoutes()
+    {
+        parent::registerRoutes();
+        if ($this->commands) {
+            general_call($this->bot, $this->commands, [], $this);
+        }
     }
 }

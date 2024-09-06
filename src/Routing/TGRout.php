@@ -3,11 +3,14 @@
 namespace TGMehdi\Routing;
 
 use TGMehdi\Routing\Commands\CommandContract;
+use TGMehdi\Routing\Inputs\CallbackInput;
 use TGMehdi\States\StateBase;
+use TGMehdi\TelegramBot;
 
 class TGRout
 {
     public static $routes = [];
+    public static $keys = [];
     public static $status = '.';
     private static $allowed_chat_types = ['private'];
     private static $is_calaculated = false;
@@ -40,7 +43,7 @@ class TGRout
 
     private static function get_options($options)
     {
-        $options['status'] = (!isset($options['status']) or $options['status'] == 'default') ? self::$status : self::concat(self::$status, $options['status']);
+        $options['status'] = (!isset($options['status']) or $options['status'] == 'default') ? self::$status : $options['status'];
         $options['allowed_chat_types'] = (!isset($options['allowed_chat_types']) or $options['allowed_chat_types'] == 'default') ? self::$allowed_chat_types : $options['allowed_chat_types'];
         $options['state_class'] = (!isset($options['state_class'])) ? self::$state_class : $options['state_class'];
         $options['priority'] = (!isset($options['priority'])) ? self::$priority : $options['priority'];
@@ -78,7 +81,6 @@ class TGRout
     public static function add_command(CommandContract $command, $status = 'default', $priority = 1, $state_class = null)
     {
         $options = self::get_options(['status' => $status, 'priority' => $priority, 'state_class' => $state_class]);
-
         if (str_starts_with(self::$real_status, $options['status'])) {
             foreach ($options['allowed_chat_types'] as $allowed_chat_type) {
                 self::make_available_route($allowed_chat_type, $priority, $options['status']);
@@ -105,11 +107,14 @@ class TGRout
 
     public static function state(StateBase $state)
     {
-        $state_int = $state->getState();
-        if (str_starts_with(self::$real_status, $state_int))
-            self::group(['state_class' => $state], function () use ($state) {
+        $command_state = $state->getCommandState();
+        if (str_starts_with(self::$real_status, $command_state)) {
+            self::group(['status' => $command_state, 'state_class' => $state], function () use ($state) {
+                $bot = app(TelegramBot::class);
+                $state->init($bot);
                 $state->registerRoutes();
             });
+        }
     }
 
     public static function get_routes($bot_name, $chat_type, $real_status)

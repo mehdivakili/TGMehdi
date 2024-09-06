@@ -4,7 +4,7 @@ namespace TGMehdi\Routing\Commands;
 
 use TGMehdi\Routing\Inputs\InputContract;
 
-class AlwaysCommand implements CommandContract
+class AlwaysCommand extends CommandBase implements CommandContract
 {
     use CommandHelper;
 
