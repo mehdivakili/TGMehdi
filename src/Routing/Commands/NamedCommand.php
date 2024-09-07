@@ -2,6 +2,7 @@
 
 namespace TGMehdi\Routing\Commands;
 
+use Exception;
 use TGMehdi\Routing\Inputs\InputContract;
 
 class NamedCommand extends CommandBase implements CommandContract
