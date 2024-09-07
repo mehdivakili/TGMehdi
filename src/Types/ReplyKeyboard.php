@@ -18,7 +18,7 @@ class ReplyKeyboard extends TelegramBaseKeyboard
         $this->keyboard['resize_keyboard'] = $resize_keyboard;
         $this->keyboard['one_time_keyboard'] = $one_time_keyboard;
         $this->keyboard['selective'] = $selective;
-        $this->keyboard['persistent'] = $selective;
+        $this->keyboard['persistent'] = $persistent;
 
     }
 
