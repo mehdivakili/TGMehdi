@@ -305,10 +305,10 @@ class TelegramBot
             }
         }
         $this->chat = $chat;
-        $this->chat_status = $this->chat->status;
-
-        $this->chat_data('status', $this->chat_status);
-
+        if(!$this->chat_status) {
+            $this->chat_status = $this->chat->status;
+            $this->chat_data('status', $this->chat_status);
+        }
         $this->chat_data('save_date', now()->timestamp);
     }
 
