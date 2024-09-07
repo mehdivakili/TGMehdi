@@ -27,7 +27,7 @@ class TelegramBot
     public $chat_id;
     public $chat_type;
     public $chat_status;
-    private $original_chat_status;
+
 
     public null|ReplyKeyboard $keyboard;
     public $reply_message_id;
@@ -90,10 +90,11 @@ class TelegramBot
         } else {
             $this->chat_data();
             $this->chat_status = $this->chat_data('status');
-            $this->original_chat_status = $this->chat_data('original_status');
             $save_date = $this->chat_data('save_date');
-            if (!$this->original_chat_status or !$save_date or now()->diffInMinutes(Carbon::createFromTimestamp($save_date)) > 90) {
+            if (!$save_date or now()->diffInMinutes(Carbon::createFromTimestamp($save_date)) > 90) {
                 $this->chat();
+                $this->chat->status = $this->chat_status;
+                $this->chat->save();
             }
         }
     }
@@ -305,9 +306,9 @@ class TelegramBot
         }
         $this->chat = $chat;
         $this->chat_status = $this->chat->status;
-        $this->original_chat_status = $this->chat->status;
+
         $this->chat_data('status', $this->chat_status);
-        $this->chat_data('original_status', $this->original_chat_status);
+
         $this->chat_data('save_date', now()->timestamp);
     }
 
@@ -398,24 +399,13 @@ class TelegramBot
             $this->chat()->status = $this->chat_status;
             $this->chat->save();
         } else {
-            if ($this->chat_status != ".same." or $this->chat_status != $this->original_chat_status) {
-                if (isset($this->chat_temp) and empty($this->chat_temp)) {
-                    Redis::unlink("{$this->bot['name']}_chat_{$this->chat_id}.temp");
-                } else if (isset($this->chat_temp)) {
-                    Redis::hmset("{$this->bot['name']}_chat_{$this->chat_id}.temp", $this->temp());
-                }
-                $orig_status = $this->chat_data('original_status');
-                $s = $this->chat_status;
-                if (empty($orig_status)) {
-                    $chat = $this->chat();
-                    if ($chat->status != $s) {
-                        $chat->status = $s;
-                        $chat->save();
-                    }
-                }
-                if ($this->chat_data_changed)
-                    Redis::hmset("{$this->bot['name']}_chat_{$this->chat_id}.data", $this->chat_data());
+            if (isset($this->chat_temp) and empty($this->chat_temp)) {
+                Redis::unlink("{$this->bot['name']}_chat_{$this->chat_id}.temp");
+            } else if (isset($this->chat_temp)) {
+                Redis::hmset("{$this->bot['name']}_chat_{$this->chat_id}.temp", $this->temp());
             }
+            if ($this->chat_data_changed)
+                Redis::hmset("{$this->bot['name']}_chat_{$this->chat_id}.data", $this->chat_data());
         }
 
     }
@@ -426,7 +416,11 @@ class TelegramBot
             $this->chat_data = Redis::hgetall("{$this->bot['name']}_chat_{$this->chat_id}.data");
         if (is_null($this->chat_data))
             $this->chat_data = [];
-        if (!is_null($value)) {
+        if (!is_null($value) and
+            (!isset($this->chat_data[$value]) or
+                (isset($this->chat_data[$value]) and $this->chat_data[$value] != $value)
+            )
+        ) {
             $this->chat_data[$key] = $value;
             $this->chat_data_changed = true;
         }

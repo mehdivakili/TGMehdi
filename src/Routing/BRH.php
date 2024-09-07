@@ -6,12 +6,13 @@ use TGMehdi\States\SimpleState;
 
 class BRH
 {
-    public static function add_goto($regex, $func, $state = null, $key = null)
+    public static function add_goto($regex, $func, $key,$command_state )
     {
         $state = $state ?? BotRout::$status;
-        BotRout::state((new SimpleState($state, add_to_states: (bool)$key, key: $key))
+        BotRout::state((new SimpleState($key))
             ->setRegex($regex)
             ->setFunc($func)
+            ->setCommandState($command_state)
         );
     }
 
