@@ -2,13 +2,21 @@
 
 namespace TGMehdi\States;
 
+use TGMehdi\Routing\BotRout;
+
 class SimpleState extends StateBase
 {
     protected $regex = null;
 
     protected $func;
     protected $commands = null;
+    public $name = "";
 
+    public function name(string $name)
+    {
+        $this->name = $name;
+        return $this;
+    }
 
     function setRegex($regex)
     {
@@ -28,18 +36,6 @@ class SimpleState extends StateBase
         return $this;
     }
 
-    public function getRegexes()
-    {
-        if ($this->regex) {
-            return [
-                'any' => [
-                    $this->regex => ['handle']
-                ]
-            ];
-        } else {
-            return [];
-        }
-    }
 
     public function handle()
     {
@@ -48,6 +44,12 @@ class SimpleState extends StateBase
 
     public function registerRoutes()
     {
+        if ($this->regex) {
+            $name = ($this->name) ?: $this->state_key;
+            BotRout::any($this->regex, [$this, 'handle'], $this->command_state)->name($name);
+        } else {
+            return [];
+        }
         parent::registerRoutes();
         if ($this->commands) {
             general_call($this->bot, $this->commands, [], $this);

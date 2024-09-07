@@ -10,15 +10,22 @@ class CallbackState extends StateBase
     protected $state = ".";
     protected $output_state = "same";
     public $command_state = '.';
+    public string $name = "";
 
     protected $regex = [];
 
+    public function name($name)
+    {
+        $this->name = $name;
+        return $this;
+    }
     public function registerRoutes()
     {
         $regexes = $this->getRegexes();
         foreach ($regexes as $regex => $action) {
             $action = (is_null($this->keyboard)) ? $action : new InlineMessage($this->keyboard, $action);
-            BotRout::callback($regex, $action, $this->getCommandState())->set_state_class($this);
+            $name = ($this->name) ?: $this->state_key;
+            BotRout::callback($regex, $action, $this->getCommandState())->set_state_class($this)->name($name);
         }
     }
 

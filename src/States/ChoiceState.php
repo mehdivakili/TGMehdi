@@ -2,6 +2,7 @@
 
 namespace TGMehdi\States;
 
+use TGMehdi\Routing\BotRout;
 use TGMehdi\TelegramBot;
 use TGMehdi\Types\ReplyKeyboard;
 
@@ -10,29 +11,34 @@ class ChoiceState extends StateBase
     protected $choices;
     protected $success_choice;
     protected $key;
+
+    public string $name = "";
     protected $afterSuccess;
     protected $keyboardOrder = [-1];
 
     public bool $is_state_change = true;
 
+    public function name($name)
+    {
+        $this->name = $name;
+        return $this;
+    }
     public function setKeyboardOrder($o)
     {
         $this->keyboardOrder = $o;
         return $this;
     }
 
-    public function getRegexes()
+    public function registerRoutes()
     {
         $choices = array_keys($this->getChoices());
         foreach ($choices as $key => $choice) {
             $choices[$key] = str_replace('/', '\/', str_replace('*', '\*', str_replace('+', '\+', $choice)));
         }
         $r = '/^(' . implode('|', $choices) . ')$/';
-        return [
-            'any' => [
-                $r => ['handle']
-            ]
-        ];
+        $name = ($this->name) ?: $this->state_key;
+        BotRout::any($r, [$this, 'handle'], $this->command_state)->name($name);
+        parent::registerRoutes();
     }
 
     public function beforeEnter()
