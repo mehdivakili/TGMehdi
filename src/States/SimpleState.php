@@ -46,7 +46,7 @@ class SimpleState extends StateBase
     {
         if ($this->regex) {
             $name = ($this->name) ?: $this->state_key;
-            BotRout::any($this->regex, [$this, 'handle'], $this->command_state)->name($name);
+            BotRout::any($this->regex, [$this, 'handle'], $this->getCommandState())->name($name);
         } else {
             return [];
         }

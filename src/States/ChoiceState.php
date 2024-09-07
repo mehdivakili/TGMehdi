@@ -37,7 +37,7 @@ class ChoiceState extends StateBase
         }
         $r = '/^(' . implode('|', $choices) . ')$/';
         $name = ($this->name) ?: $this->state_key;
-        BotRout::any($r, [$this, 'handle'], $this->command_state)->name($name);
+        BotRout::any($r, [$this, 'handle'],$this->getCommandState() )->name($name);
         parent::registerRoutes();
     }
 

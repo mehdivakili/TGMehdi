@@ -22,7 +22,7 @@ class FormState extends StateBase
     public function registerRoutes()
     {
         $name = ($this->name) ?: $this->state_key;
-        BotRout::any($this->regex,[$this,'handle'],$this->command_state)->name($name);
+        BotRout::any($this->regex,[$this,'handle'],$this->getCommandState())->name($name);
     }
 
     public function filter($input)
