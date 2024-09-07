@@ -108,13 +108,11 @@ class TGRout
     public static function state(StateBase $state)
     {
         $command_state = $state->getCommandState();
-        if (str_starts_with(self::$real_status, $command_state)) {
-            self::group(['status' => $command_state, 'state_class' => $state], function () use ($state) {
-                $bot = app(TelegramBot::class);
-                $state->init($bot);
-                $state->registerRoutes();
-            });
-        }
+        self::group(['status' => $command_state, 'state_class' => $state], function () use ($state) {
+            $bot = app(TelegramBot::class);
+            $state->init($bot);
+            $state->registerRoutes();
+        });
     }
 
     public static function get_routes($bot_name, $chat_type, $real_status)
