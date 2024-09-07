@@ -4,6 +4,7 @@
 namespace TGMehdi;
 
 
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Storage;
@@ -90,8 +91,10 @@ class TelegramBot
             $this->chat_data();
             $this->chat_status = $this->chat_data('status');
             $this->original_chat_status = $this->chat_data('original_status');
-            if (!$this->original_chat_status)
+            $save_date = $this->chat_data('save_date');
+            if (!$this->original_chat_status or !$save_date or now()->diffInMinutes(Carbon::createFromTimestamp($save_date)) > 90) {
                 $this->chat();
+            }
         }
     }
 
@@ -203,7 +206,7 @@ class TelegramBot
             } else {
                 return false;
             }
-            if($status->is_state_change){
+            if ($status->is_state_change) {
                 $status = $status->getEnterState();
             } else {
                 $status = ".same.";
@@ -286,8 +289,7 @@ class TelegramBot
 
     }
 
-    private
-    function chat_find_or_create()
+    private function chat_find_or_create()
     {
         $chat = ChatFacade::where('chat_id', $this->chat_id)->where('bot_name', $this->bot['name'])->first();
         if (empty($chat)) {
@@ -306,6 +308,7 @@ class TelegramBot
         $this->original_chat_status = $this->chat->status;
         $this->chat_data('status', $this->chat_status);
         $this->chat_data('original_status', $this->original_chat_status);
+        $this->chat_data('save_date', now()->timestamp);
     }
 
     public function chat($rewrite = false)
