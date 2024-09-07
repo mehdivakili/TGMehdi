@@ -33,7 +33,7 @@ class NamedCommand extends CommandBase implements CommandContract
     {
         $regexes = [
             'number' => ['\d+', '1'],
-            'world' => ['\w+', 'hello'],
+            'word' => ['\w+', 'hello'],
             'pos_number' => ['[1-9][0-9]*', '32'],
             'cost' => ['([1-9][0-9]*|0)(\.[0-9]+)?', '32.3']
         ];
