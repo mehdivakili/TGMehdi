@@ -251,6 +251,15 @@ class TelegramBot
         }
     }
 
+    public function del_chat_data($key = null)
+    {
+        if (!is_null($key)) {
+            unset($this->chat_data[$key]);
+        } else {
+            $this->chat_data = [];
+        }
+    }
+
     public function del_temp($key = null)
     {
         if (!is_null($key)) {
@@ -305,7 +314,7 @@ class TelegramBot
             }
         }
         $this->chat = $chat;
-        if(!$this->chat_status) {
+        if (!$this->chat_status) {
             $this->chat_status = $this->chat->status;
             $this->chat_data('status', $this->chat_status);
         }
