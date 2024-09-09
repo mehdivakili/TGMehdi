@@ -2,6 +2,7 @@
 
 namespace TGMehdi\States;
 
+use Illuminate\Support\Collection;
 use TGMehdi\Routing\BotRout;
 use TGMehdi\Types\InlineKeyboard;
 use TGMehdi\Types\InlineMessage;
@@ -115,7 +116,7 @@ class PaginationState extends StateBase
     public function registerRoutes()
     {
         $p = $this->prefix;
-        BotRout::callback("$p{{page|number?0}}", [$this, "handle"],$this->getCommandState())->set_state_class($this)->name($p);
+        BotRout::callback("$p{{page|number?0}}", [$this, "handle"], $this->getCommandState())->set_state_class($this)->name($p);
         parent::registerRoutes();
     }
 
@@ -127,7 +128,11 @@ class PaginationState extends StateBase
             $query = $c($this);
         } else
             $query = $this->query;
-        $items = $query->offset($page * $this->page_limit)->limit($this->page_limit + 1)->get();
+        if (is_array($query)) {
+            $items = Collection::make($query)->forPage($page, $this->page_limit);
+        } else {
+            $items = $query->offset($page * $this->page_limit)->limit($this->page_limit + 1)->get();
+        }
         $i = 0;
         $this->keyboard = new InlineKeyboard();
         $this->startKeyboard();
