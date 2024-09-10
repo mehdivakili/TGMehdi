@@ -11,6 +11,7 @@ return [
                 'UserModel' => null
             ],
             'cache_optimisation' => true,
+            'request_queue' => null
         ]
     ],
 

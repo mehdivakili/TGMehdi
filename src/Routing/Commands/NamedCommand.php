@@ -35,7 +35,8 @@ class NamedCommand extends CommandBase implements CommandContract
             'number' => ['\d+', '1'],
             'word' => ['\w+', 'hello'],
             'pos_number' => ['[1-9][0-9]*', '32'],
-            'cost' => ['([1-9][0-9]*|0)(\.[0-9]+)?', '32.3']
+            'cost' => ['([1-9][0-9]*|0)(\.[0-9]+)?', '32.3'],
+            'any' => ['.+', 'any']
         ];
         $par_regex = "/\{\{([^}]+)}}/";
         $parameters = [];

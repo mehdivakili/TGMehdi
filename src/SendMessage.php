@@ -4,6 +4,7 @@
 namespace TGMehdi;
 
 
+use TGMehdi\Jobs\SendRequest;
 use TGMehdi\Types\InlineKeyboard;
 use TGMehdi\Types\ReplyKeyboard;
 use TGMehdi\Types\TelegramBaseKeyboard;
@@ -65,13 +66,12 @@ trait SendMessage
             $post_params['reply_markup'] = $this->keyboard->render();
         }
         if ($url != "") {
-            if ($has_file)
-                $res = $request->post($this->bot_url . '/' . $url, $post_params);
+            if ($this->bot['message_queue'])
+                $res = SendRequest::dispatch($this->bot['name'], $url, $post_params)->onQueue('message_answers');
             else
-                $res = Http::connectTimeout(20)->withOptions(['proxy' => config('tgmehdi.proxy', null), 'verify' => false])->post($this->bot_url . '/' . $url, $post_params);
-            echo "<hr>" . json_encode($post_params) . "<hr>";
-            BotController::add_res($res->json());
-            return $res->json();
+                $res = SendRequest::dispatchSync($this->bot['name'], $url, $post_params);
+            BotController::add_res($res);
+            return $res;
         }
         return false;
     }
