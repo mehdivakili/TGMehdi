@@ -68,9 +68,10 @@ class NamedCommand extends CommandBase implements CommandContract
             }
             $parameters[$name] = ['regex' => $reg, 'default' => $default];
             $reg = $regexes[$reg];
-            $pattern = preg_replace($par_regex, "(" . $reg[0] . ")" . ((!is_null($default)) ? '?' : ''), $pattern);
-            $sample = preg_replace($par_regex, $reg[1], $sample);
-            $replacement = preg_replace($par_regex, "{{" . $name . "}}", $replacement);
+            $replace_str = "{{{$matches[1]}}}";
+            $pattern = str_replace($replace_str, "(" . $reg[0] . ")" . ((!is_null($default)) ? '?' : ''), $pattern);
+            $sample = str_replace($replace_str, $reg[1], $sample);
+            $replacement = str_replace($replace_str, "{{" . $name . "}}", $replacement);
             $i++;
         }
         $this->pattern = $pattern;
