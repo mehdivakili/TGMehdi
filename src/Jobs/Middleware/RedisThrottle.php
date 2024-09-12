@@ -24,7 +24,6 @@ class RedisThrottle
             ->then(function () use ($job, $next) {
                 $next($job);
             }, function () use ($job) {
-//                sleep($this->seconds);
                 $job->release($this->seconds);
             });
     }
