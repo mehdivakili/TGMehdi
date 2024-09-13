@@ -8,6 +8,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Http;
+use TGMehdi\BotController;
 use TGMehdi\Jobs\Middleware\RedisThrottle;
 
 class SendRequest implements ShouldQueue
@@ -28,7 +29,9 @@ class SendRequest implements ShouldQueue
     public function handle()
     {
         $token = config('tgmehdi.bots.' . $this->bot_name . '.token');
-        return Http::connectTimeout(20)->withOptions(['proxy' => config('tgmehdi.proxy', null), 'verify' => false])->post("https://api.telegram.org/bot" . $token . '/' . $this->url, $this->params)->json();
+        $res = Http::connectTimeout(20)->withOptions(['proxy' => config('tgmehdi.proxy', null), 'verify' => false])->post("https://api.telegram.org/bot" . $token . '/' . $this->url, $this->params)->json();
+        BotController::add_res($res);
+        return $res;
     }
 
     /**

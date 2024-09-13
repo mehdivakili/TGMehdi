@@ -70,7 +70,6 @@ trait SendMessage
                 $res = SendRequest::dispatch($this->bot['name'], $url, $post_params)->onQueue('message_answers');
             else
                 $res = SendRequest::dispatchSync($this->bot['name'], $url, $post_params);
-            BotController::add_res($res);
             return $res;
         }
         return false;
