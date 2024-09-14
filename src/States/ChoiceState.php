@@ -23,6 +23,7 @@ class ChoiceState extends StateBase
         $this->name = $name;
         return $this;
     }
+
     public function setKeyboardOrder($o)
     {
         $this->keyboardOrder = $o;
@@ -37,7 +38,7 @@ class ChoiceState extends StateBase
         }
         $r = '/^(' . implode('|', $choices) . ')$/';
         $name = ($this->name) ?: $this->state_key;
-        BotRout::any($r, [$this, 'handle'],$this->getCommandState() )->name($name);
+        BotRout::any($r, [$this, 'handle'], $this->getCommandState())->name($name);
         parent::registerRoutes();
     }
 
@@ -58,14 +59,15 @@ class ChoiceState extends StateBase
                 }
                 if ($rowI == 0) {
                     $keyboard->newLine();
+                    if ($order > 0) {
+                        $orderI++;
+                        $order = $this->keyboardOrder[$orderI];
+                    }
                     $rowI = abs($order) - 1;
                 } else {
                     $rowI--;
                 }
-                if ($order > 0) {
-                    $orderI++;
-                    $order = $this->keyboardOrder[$orderI];
-                }
+
             }
             $this->setKeyboard($keyboard);
 

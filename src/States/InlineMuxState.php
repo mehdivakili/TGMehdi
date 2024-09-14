@@ -34,14 +34,15 @@ class InlineMuxState extends StateBase
                 }
                 if ($rowI == 0) {
                     $keyboard->newLine();
+                    if ($order > 0) {
+                        $orderI++;
+                        $order = $this->keyboardOrder[$orderI];
+                    }
                     $rowI = abs($order) - 1;
                 } else {
                     $rowI--;
                 }
-                if ($order > 0) {
-                    $orderI++;
-                    $order = $this->keyboardOrder[$orderI];
-                }
+
             }
             $this->setKeyboard($keyboard);
 
