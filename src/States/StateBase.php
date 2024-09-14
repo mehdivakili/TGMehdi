@@ -189,7 +189,7 @@ class StateBase
     {
         if ($this->keyboard) {
             if ($this->keyboard instanceof InlineKeyboard)
-                return new InlineMessage($this->keyboard, $this->afterEnter);
+                return $this->exec(new InlineMessage($this->keyboard, $this->afterEnter));
             else {
                 $this->bot->set_keyboard($this->keyboard);
                 return $this->exec(['send',$this->afterEnter]);
