@@ -65,12 +65,16 @@ class TelegramBot
 
     }
 
-    public function another_bot($bot_name, \Closure $func)
+    public function another_bot($bot_name, \Closure $func, $options = [])
     {
         $old_bot = $this->bot;
         $this->switch_bot($bot_name);
+        foreach ($options as $key => $option) {
+            $this->bot[$key] = $option;
+        }
         $func();
-        $this->switch_bot($old_bot['name']);
+        if ($old_bot['name'] != 'bot')
+            $this->switch_bot($old_bot['name']);
     }
 
 
@@ -380,17 +384,6 @@ class TelegramBot
     {
         return $s;
 
-    }
-
-    public function send_keyboard($keyboard)
-    {
-        if ($keyboard instanceof InlineKeyboard and $this->update_type == 'callback_query') {
-            $options['message_id'] = $this->message_object['message_id'];
-            $options['reply_markup'] = $keyboard->render();
-            $this->send_reply('editMessageReplyMarkup', $options, true);
-        } else {
-            $this->set_keyboard($keyboard);
-        }
     }
 
     public function switch_bot($bot_name)
