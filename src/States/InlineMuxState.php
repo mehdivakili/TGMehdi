@@ -28,7 +28,7 @@ class InlineMuxState extends StateBase
             $order = $this->keyboardOrder[$orderI];
             $rowI = abs($order) - 1;
             while (isset($commands[$choiceI])) {
-                $keyboard->newButton($commands[$choiceI++][0], $commands[$choiceI++][1]);
+                $keyboard->newButton($commands[$choiceI][0], $commands[$choiceI++][1]);
                 if ($order == 0) {
                     break;
                 }
