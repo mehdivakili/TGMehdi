@@ -89,6 +89,12 @@ class StateBase
         return __($this->default_text);
     }
 
+    function setDefaultText(string $default_text)
+    {
+        $this->default_text = $default_text;
+        return $this;
+    }
+
     function setAfterEnter($afterEnter)
     {
         $this->afterEnter = $afterEnter;

@@ -5,13 +5,12 @@ return [
         'default' => [
             'token' => env('TGMEHDI_TOKEN'),
             'secret_token' => env('TGMEHDI_SECRET_TOKEN'),
-            'route' => 'default',            'auth' => [
-                'role' => null,
-                'shared' => null,
-                'UserModel' => null
-            ],
+            'route' => 'default',
+            'debug' => env('TGMEHDI_DEBUG', false),
+            'allowed_chats' => ['private'],
+            'shared' => null,
             'cache_optimisation' => true,
-            'request_queue' => null
+            'message_queue' => null
         ]
     ],
 

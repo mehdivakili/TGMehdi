@@ -37,6 +37,8 @@ class TelegramBot
     private array $chat_data;
     private bool $chat_data_changed = false;
     private bool $chat_temp_delete = false;
+
+    private bool $temp_changed = false;
     /**
      * @var false|string
      */
@@ -239,10 +241,22 @@ class TelegramBot
             $this->chat->save();
             return $text;
         } else {
-            if (!isset($this->chat_temp))
-                $this->chat_temp = Redis::hgetall("{$this->bot['name']}_chat_{$this->chat_id}.temp");
-            if (!is_null($text))
+            if (!isset($this->chat_temp)) {
+                $name = (isset($this->bot['shared']) and !empty($this->bot['shared'])) ? $this->bot['shared'] : $this->bot['name'];
+                if ($name != "nothing")
+                    $this->chat_temp = Redis::hgetall("{$name}_chat_{$this->chat_id}.temp");
+                else {
+                    $this->chat_temp = [];
+                }
+            }
+            if (!is_null($text) and
+                (!isset($this->chat_temp[$key]) or
+                    (isset($this->chat_temp[$key]) and $text != $this->chat_temp[$key])
+                )
+            ) {
                 $this->chat_temp[$key] = $text;
+                $this->temp_changed = true;
+            }
             if (is_null($key))
                 return $this->chat_temp;
             if (isset($this->chat_temp[$key]))
@@ -267,6 +281,7 @@ class TelegramBot
         } else {
             $this->chat_temp = [];
         }
+        $this->temp_changed = true;
     }
 
     public function pass_middlewares($middleware)
@@ -301,7 +316,8 @@ class TelegramBot
 
     private function chat_find_or_create()
     {
-        $chat = ChatFacade::where('chat_id', $this->chat_id)->where('bot_name', $this->bot['name'])->first();
+        $name = (isset($this->bot['shared']) and !empty($this->bot['shared'])) ? $this->bot['shared'] : $this->bot['name'];
+        $chat = ChatFacade::where('chat_id', $this->chat_id)->where('bot_name', $name)->first();
         if (empty($chat)) {
             $chat = app("tgmehdi.chat");
             $chat->chat_id = $this->chat_id;
@@ -309,7 +325,7 @@ class TelegramBot
             $chat->type = $this->chat_type;
             $chat->status = '.start.';
             $chat->temp_text = '{}';
-            if (in_array($chat->type, $this->bot['allowed_chats'])) {
+            if (in_array($chat->type, $this->bot['allowed_chats']) and $name != "nothing") {
                 $chat->save();
             }
         }
@@ -408,21 +424,29 @@ class TelegramBot
             $this->chat()->status = $this->chat_status;
             $this->chat->save();
         } else {
-            if (isset($this->chat_temp) and empty($this->chat_temp)) {
-                Redis::unlink("{$this->bot['name']}_chat_{$this->chat_id}.temp");
-            } else if (isset($this->chat_temp)) {
-                Redis::hmset("{$this->bot['name']}_chat_{$this->chat_id}.temp", $this->temp());
+            $name = (isset($this->bot['shared']) and !empty($this->bot['shared'])) ? $this->bot['shared'] : $this->bot['name'];
+            if ($name != "nothing") {
+                if ($this->temp_changed) {
+                    if (empty($this->chat_temp)) {
+                        Redis::unlink("{$name}_chat_{$this->chat_id}.temp");
+                    } else {
+                        Redis::hmset("{$name}_chat_{$this->chat_id}.temp", $this->temp());
+                    }
+                }
+                if ($this->chat_data_changed)
+                    Redis::hmset("{$name}_chat_{$this->chat_id}.data", $this->chat_data());
             }
-            if ($this->chat_data_changed)
-                Redis::hmset("{$this->bot['name']}_chat_{$this->chat_id}.data", $this->chat_data());
         }
 
     }
 
     public function chat_data($key = null, $value = null)
     {
-        if (!isset($this->chat_data))
-            $this->chat_data = Redis::hgetall("{$this->bot['name']}_chat_{$this->chat_id}.data");
+        if (!isset($this->chat_data)) {
+            $name = (isset($this->bot['shared']) and !empty($this->bot['shared'])) ? $this->bot['shared'] : $this->bot['name'];
+            if ($name != "nothing")
+                $this->chat_data = Redis::hgetall("{$name}_chat_{$this->chat_id}.data");
+        }
         if (is_null($this->chat_data))
             $this->chat_data = [];
         if (!is_null($value) and
