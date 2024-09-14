@@ -21,30 +21,32 @@ class InlineMuxState extends StateBase
 
     public function beforeEnter()
     {
-        $keyboard = new InlineKeyboard();
-        $commands = $this->commands;
-        $orderI = 0;
-        $choiceI = 0;
-        $order = $this->keyboardOrder[$orderI];
-        $rowI = abs($order) - 1;
-        while ($choiceI < count($commands)) {
-            $keyboard->newButton($commands[$choiceI][0], $commands[$choiceI++][1]);
-            if ($order == 0) {
-                break;
-            }
-            if ($rowI == 0) {
-                $keyboard->newLine();
-                if ($order > 0) {
-                    $orderI++;
-                    $order = $this->keyboardOrder[$orderI];
+        if (!$this->keyboard) {
+            $keyboard = new InlineKeyboard();
+            $commands = $this->commands;
+            $orderI = 0;
+            $choiceI = 0;
+            $order = $this->keyboardOrder[$orderI];
+            $rowI = abs($order) - 1;
+            while ($choiceI < count($commands)) {
+                $keyboard->newButton($commands[$choiceI][0], $commands[$choiceI++][1]);
+                if ($order == 0) {
+                    break;
                 }
-                $rowI = abs($order) - 1;
-            } else {
-                $rowI--;
-            }
+                if ($rowI == 0) {
+                    $keyboard->newLine();
+                    if ($order > 0) {
+                        $orderI++;
+                        $order = $this->keyboardOrder[$orderI];
+                    }
+                    $rowI = abs($order) - 1;
+                } else {
+                    $rowI--;
+                }
 
+            }
+            $this->setKeyboard($keyboard);
         }
-        $this->setKeyboard($keyboard);
 
         return parent::beforeEnter();
     }
