@@ -4,6 +4,7 @@ namespace TGMehdi\States;
 
 use TGMehdi\Routing\BotRout;
 use TGMehdi\Types\InlineKeyboard;
+use TGMehdi\Types\InlineMessage;
 use TGMehdi\Types\ReplyKeyboard;
 
 class InlineMuxState extends StateBase
@@ -20,34 +21,37 @@ class InlineMuxState extends StateBase
 
     public function beforeEnter()
     {
-        if (!$this->keyboard) {
-            $keyboard = new InlineKeyboard();
-            $commands = $this->commands;
-            $orderI = 0;
-            $choiceI = 0;
-            $order = $this->keyboardOrder[$orderI];
-            $rowI = abs($order) - 1;
-            while ($choiceI < count($commands)) {
-                $keyboard->newButton($commands[$choiceI][0], $commands[$choiceI++][1]);
-                if ($order == 0) {
-                    break;
-                }
-                if ($rowI == 0) {
-                    $keyboard->newLine();
-                    if ($order > 0) {
-                        $orderI++;
-                        $order = $this->keyboardOrder[$orderI];
-                    }
-                    $rowI = abs($order) - 1;
-                } else {
-                    $rowI--;
-                }
-
+        $keyboard = new InlineKeyboard();
+        $commands = $this->commands;
+        $orderI = 0;
+        $choiceI = 0;
+        $order = $this->keyboardOrder[$orderI];
+        $rowI = abs($order) - 1;
+        while ($choiceI < count($commands)) {
+            $keyboard->newButton($commands[$choiceI][0], $commands[$choiceI++][1]);
+            if ($order == 0) {
+                break;
             }
-            $this->setKeyboard($keyboard);
+            if ($rowI == 0) {
+                $keyboard->newLine();
+                if ($order > 0) {
+                    $orderI++;
+                    $order = $this->keyboardOrder[$orderI];
+                }
+                $rowI = abs($order) - 1;
+            } else {
+                $rowI--;
+            }
 
         }
+        $this->setKeyboard($keyboard);
+
         return parent::beforeEnter();
+    }
+
+    public function afterEnter()
+    {
+        return $this->exec(new InlineMessage($this->keyboard, $this->afterEnter));
     }
 
     public function setKeyboardOrder($o)

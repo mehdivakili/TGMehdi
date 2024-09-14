@@ -187,7 +187,7 @@ class StateBase
 
     function afterEnter()
     {
-        if ($this->keyboard) {
+        if (!is_null($this->keyboard)) {
             if ($this->keyboard instanceof InlineKeyboard)
                 return $this->exec(new InlineMessage($this->keyboard, $this->afterEnter));
             else {
