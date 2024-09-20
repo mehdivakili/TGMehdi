@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Redis;
 use TGMehdi\Controllers\TGMehdi;
+use TGMehdi\Events\DataParsedEvent;
 use TGMehdi\Events\ErrorEvent;
 use TGMehdi\Routing\BotRout;
 use TGMehdi\Routing\TGRout;
@@ -123,6 +124,7 @@ class BotController extends Controller
             $this->r = $request->all();
         }
         $telegramBot->data_init($this->r);
+        DataParsedEvent::dispatch($telegramBot);
         $real_status = $telegramBot->chat_status;
         $routes_with_pr = TGRout::get_routes($telegramBot->bot['route'], $telegramBot->chat_type, $real_status)[$telegramBot->chat_type];
         $telegramBot->set_state($real_status);

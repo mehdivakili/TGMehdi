@@ -12,7 +12,6 @@ use TGMehdi\Facades\ChatFacade;
 use TGMehdi\Routing\BotRout;
 use TGMehdi\Routing\Middlewares\MiddlewareContract;
 use TGMehdi\States\StateBase;
-use TGMehdi\Types\InlineKeyboard;
 use TGMehdi\Types\ReplyKeyboard;
 
 class TelegramBot
