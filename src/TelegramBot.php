@@ -90,19 +90,13 @@ class TelegramBot
         $chat_data = $this->input->chat_data();
         $this->chat_id = $chat_data['id'];
         $this->chat_type = $chat_data['type'];
-        if (empty($this->bot['cache_optimization'])) {
-            $this->chat();
+        if (empty($this->bot['cache_optimization']) or $this->bot['cache_optimization'] !== true) {
+            $this->chat_status = $this->chat()->status;
         } else {
-            $this->chat_data();
-            $save_date = $this->chat_data('save_date');
-            if (!$save_date) {
-                $this->chat();
-                $this->chat_status = $this->chat->status;
-            } else if (now()->diffInMinutes(Carbon::createFromTimestamp($save_date)) > 90) {
-                $this->chat();
+            if (!$this->chat_data('save_date')) {
+                $this->chat_status = $this->chat()->status;
+            } else {
                 $this->chat_status = $this->chat_data('status');
-                $this->chat->status = $this->chat_status;
-                $this->chat->save();
             }
         }
     }
@@ -225,7 +219,6 @@ class TelegramBot
         if (!str_ends_with($status, '.')) $status = $status . '.';
         if ($status != '.same.') {
             $this->chat_status = $status;
-            $this->chat_data('status', $status);
             $this->set_state($status);
         }
         return true;
@@ -323,7 +316,11 @@ class TelegramBot
     private function chat_find_or_create()
     {
         $name = (isset($this->bot['shared']) and !empty($this->bot['shared'])) ? $this->bot['shared'] : $this->bot['name'];
-        $chat = ChatFacade::where('chat_id', $this->chat_id)->where('bot_name', $name)->first();
+        if ($name == 'nothing') {
+            $chat = null;
+        } else {
+            $chat = ChatFacade::where('chat_id', $this->chat_id)->where('bot_name', $name)->first();
+        }
         if (empty($chat)) {
             $chat = app("tgmehdi.chat");
             $chat->chat_id = $this->chat_id;
@@ -331,16 +328,8 @@ class TelegramBot
             $chat->type = $this->chat_type;
             $chat->status = '.start.';
             $chat->temp_text = '{}';
-            if (in_array($chat->type, $this->bot['allowed_chats']) and $name != "nothing") {
-                $chat->save();
-            }
         }
         $this->chat = $chat;
-        if (!$this->chat_status) {
-            $this->chat_status = $this->chat->status;
-            $this->chat_data('status', $this->chat_status);
-        }
-        $this->chat_data('save_date', now()->timestamp);
     }
 
     public function chat($rewrite = false)
@@ -415,12 +404,22 @@ class TelegramBot
 
     public function save_chat_state()
     {
-        if (empty($this->bot['cache_optimization'])) {
-            $this->chat()->status = $this->chat_status;
-            $this->chat->save();
-        } else {
-            $name = (isset($this->bot['shared']) and !empty($this->bot['shared'])) ? $this->bot['shared'] : $this->bot['name'];
-            if ($name != "nothing") {
+
+        $name = (isset($this->bot['shared']) and !empty($this->bot['shared'])) ? $this->bot['shared'] : $this->bot['name'];
+        if ($name != "nothing") {
+            if (empty($this->bot['cache_optimization'])) {
+                $this->chat()->status = $this->chat_status;
+                $this->chat->save();
+            } else {
+                $this->chat_data('status', $this->chat_status);
+                if(!$this->chat_data('save_date') or Carbon::createFromTimestamp($this->chat_data('save_date'))->diffInMinutes(now(),true) > 90) {
+                    if(in_array($this->chat_type,$this->bot['allowed_chats'])) {
+                        $this->chat();
+                        $this->chat->status = $this->chat_status;
+                        $this->chat->save();
+                        $this->chat_data('save_date', now()->timestamp);
+                    }
+                }
                 if ($this->temp_changed) {
                     if (empty($this->chat_temp)) {
                         Redis::unlink("{$name}_chat_{$this->chat_id}.temp");
