@@ -94,10 +94,13 @@ class TelegramBot
             $this->chat();
         } else {
             $this->chat_data();
-            $this->chat_status = $this->chat_data('status');
             $save_date = $this->chat_data('save_date');
-            if (!$save_date or now()->diffInMinutes(Carbon::createFromTimestamp($save_date)) > 90) {
+            if (!$save_date) {
                 $this->chat();
+                $this->chat_status = $this->chat->status;
+            } else if (now()->diffInMinutes(Carbon::createFromTimestamp($save_date)) > 90) {
+                $this->chat();
+                $this->chat_status = $this->chat_data('status');
                 $this->chat->status = $this->chat_status;
                 $this->chat->save();
             }
