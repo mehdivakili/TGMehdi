@@ -50,7 +50,6 @@ class SimpleState extends StateBase
         } else {
             return [];
         }
-        parent::registerRoutes();
         if ($this->commands) {
             general_call($this->bot, $this->commands, [], $this);
         }
