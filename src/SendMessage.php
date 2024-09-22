@@ -20,23 +20,16 @@ trait SendMessage
 
     public function send_reply($url, $post_params, $immediately = false)
     {
+        $files = [];
         if ($url != '') {
             $post_params['chat_id'] = isset($post_params['chat_id']) ? $post_params['chat_id'] : $this->chat_id;
 
             if ($this->reply_message_id) {
                 $post_params['reply_to_message_id'] = $this->reply_message_id;
             }
-            $request = null;
-            $has_file = false;
             foreach ($post_params as $k => $p) {
                 if ($p instanceof TelegramFile) {
-                    if (!$has_file) {
-                        $request = Http::attach($k, $p->data, $p->name);
-                        $has_file = true;
-                    } else {
-                        $request = $request->attach($k, $p->data, $p->name);
-                    }
-                    //Storage::put('file.jpg', $p->data);
+                    $files[$k] = $p;
                     unset($post_params[$k]);
                 } elseif ($p instanceof View) {
                     $post_params[$k] = $p->render();
@@ -48,18 +41,16 @@ trait SendMessage
 
             if (!$immediately) {
                 $old_reply = $this->old_reply;
-                $this->old_reply = ['has_file' => $has_file, 'request' => $request ?? null, 'post_params' => $post_params, 'url' => $url];
+                $this->old_reply = ['post_params' => $post_params, 'url' => $url,'files' => $files];
                 if (!$old_reply) return false;
-                $has_file = $old_reply['has_file'];
-                $request = $old_reply['request'];
                 $post_params = $old_reply['post_params'];
                 $url = $old_reply['url'];
+                $files = $old_reply['files'];
             }
         } else if ($this->old_reply) {
-            $has_file = $this->old_reply['has_file'];
-            $request = $this->old_reply['request'];
             $post_params = $this->old_reply['post_params'];
             $url = $this->old_reply['url'];
+            $files = $this->old_reply['files'];
             $this->old_reply = null;
         }
         if ($this->keyboard and !$this->keyboard->is_sended and $url and empty($post_params['reply_markup'])) {
@@ -67,9 +58,9 @@ trait SendMessage
         }
         if ($url != "") {
             if ($this->bot['message_queue'])
-                $res = SendRequest::dispatch($this->bot['name'], $url, $post_params)->onQueue('message_answers');
+                $res = SendRequest::dispatch($this->bot['name'], $url, $post_params,$files)->onQueue('message_answers');
             else
-                $res = SendRequest::dispatchSync($this->bot['name'], $url, $post_params);
+                $res = SendRequest::dispatchSync($this->bot['name'], $url, $post_params,$files);
             return $res;
         }
         return false;

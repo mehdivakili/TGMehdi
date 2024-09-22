@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Str;
 use TGMehdi\States\StateBase;
 
 if (!function_exists('general_call')) {
@@ -88,6 +89,15 @@ if (!function_exists('general_call')) {
             }
         } else if (is_callable($func)) {
             return general_call($tg, call_with_dependency_inversion($tg, $func, $args, $state_class), $args, $state_class);
+        } else if ($tg and ($func instanceof \TGMehdi\Types\Media)) {
+            $s = $func->render($tg);
+            if (($message_status == 'edit') or (is_null($message_status) and $tg->get_update_type() == 'callback_query')) {
+                if ($s['caption']) {
+                    $tg->send_reply("editMessageCaption", $s);
+                }
+            } else if ($message_status == 'send' or (is_null($message_status) and $tg->get_update_type() == 'message')) {
+                $tg->send_reply("send" . Str::title($func->type), $s);
+            }
         } else if ($tg and (is_string($func) or $func instanceof \stdClass or $func instanceof \Illuminate\View\View)) {
             if (($message_status == 'edit') or (is_null($message_status) and $tg->get_update_type() == 'callback_query')) {
                 $tg->edit_message_text($func);
