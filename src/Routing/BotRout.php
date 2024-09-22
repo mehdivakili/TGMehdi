@@ -4,6 +4,8 @@
 namespace TGMehdi\Routing;
 
 
+use Illuminate\Contracts\Http\Kernel;
+use TGMehdi\BotKernel;
 use TGMehdi\Routing\Commands\AlwaysCommand;
 use TGMehdi\Routing\Commands\NamedCommand;
 use TGMehdi\Routing\Commands\RegexCommand;
@@ -199,5 +201,9 @@ class BotRout
         TGRout::state_abbr($key, $state);
     }
 
+    public static function registerMiddleware($name, $middleware)
+    {
+        BotKernel::$middlewares[$name] = $middleware;
+    }
 
 }
