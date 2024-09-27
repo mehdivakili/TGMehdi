@@ -440,9 +440,9 @@ class TelegramBot
             $name = (isset($this->bot['shared']) and !empty($this->bot['shared'])) ? $this->bot['shared'] : $this->bot['name'];
             if ($name != "nothing")
                 $this->chat_data = Redis::hgetall("{$name}_chat_{$this->chat_id}.data");
+            else
+                $this->chat_data = [];
         }
-        if (is_null($this->chat_data))
-            $this->chat_data = [];
         if (!is_null($value) and
             (!isset($this->chat_data[$value]) or
                 (isset($this->chat_data[$value]) and $this->chat_data[$value] != $value)
