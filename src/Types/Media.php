@@ -34,37 +34,37 @@ class Media
         return self::withFileID($file_id, 'video', $caption);
     }
 
-    public function withVideoPath($path, $caption)
+    public static function withVideoPath($path, $caption)
     {
         return self::withPath($path, 'video', $caption);
     }
 
-    public function withImageFileID($file_id, $caption = null)
+    public static function withImageFileID($file_id, $caption = null)
     {
         return self::withFileID($file_id, 'photo', $caption);
     }
 
-    public function withImagePath($path, $caption = null)
+    public static function withImagePath($path, $caption = null)
     {
         return self::withPath($path, 'photo', $caption);
     }
 
-    public function withAudioFileID($file_id, $caption = null)
+    public static function withAudioFileID($file_id, $caption = null)
     {
         return self::withFileID($file_id, 'audio', $caption);
     }
 
-    public function withAudioPath($path, $caption = null)
+    public static function withAudioPath($path, $caption = null)
     {
         return self::withPath($path, 'audio', $caption);
     }
 
-    public function withDocumentFileID($file_id, $caption = null)
+    public static function withDocumentFileID($file_id, $caption = null)
     {
         return self::withFileID($file_id, 'document', $caption);
     }
 
-    public function withDocumentPath($path, $caption = null)
+    public static function withDocumentPath($path, $caption = null)
     {
         return self::withPath($path, 'document', $caption);
     }
