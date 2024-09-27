@@ -7,11 +7,6 @@
     "telegram"
   ],
   "license": "MIT",
-  "homepage": "https://voyager.devdojo.com/",
-  "support": {
-    "issues": "https://github.com/the-control-group/voyager/issues",
-    "source": "https://github.com/the-control-group/voyager"
-  },
   "authors": [
     {
       "name": "Mehdi Vakili",
@@ -36,11 +31,5 @@
     "psr-4": {
       "TGMehdi\\": "src/"
     }
-  },
-  "repositories": [
-    {
-      "type": "path",
-      "url": "/home/mehdi/PhpstormProjects/admehdi"
-    }
-  ]
+  }
 }
