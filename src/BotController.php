@@ -22,7 +22,7 @@ class BotController extends Controller
 {
     public $r = null;
 
-    private static $results = [];
+    protected static $results = [];
 
 
     public static function add_res(mixed $json)

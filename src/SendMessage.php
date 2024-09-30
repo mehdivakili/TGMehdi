@@ -41,7 +41,7 @@ trait SendMessage
 
             if (!$immediately) {
                 $old_reply = $this->old_reply;
-                $this->old_reply = ['post_params' => $post_params, 'url' => $url,'files' => $files];
+                $this->old_reply = ['post_params' => $post_params, 'url' => $url, 'files' => $files];
                 if (!$old_reply) return false;
                 $post_params = $old_reply['post_params'];
                 $url = $old_reply['url'];
@@ -58,9 +58,11 @@ trait SendMessage
         }
         if ($url != "") {
             if ($this->bot['message_queue'])
-                $res = SendRequest::dispatch($this->bot['name'], $url, $post_params,$files)->onQueue('message_answers');
-            else
-                $res = SendRequest::dispatchSync($this->bot['name'], $url, $post_params,$files);
+                $res = SendRequest::dispatch($this->bot['name'], $url, $post_params, $files)->onQueue('message_answers');
+            else {
+                SendRequest::dispatchSync($this->bot['name'], $url, $post_params, $files);
+                $res = BotController::$results[array_key_last(BotController::$results)];
+            }
             return $res;
         }
         return false;
