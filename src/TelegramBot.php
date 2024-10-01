@@ -118,12 +118,18 @@ class TelegramBot
     {
         $site_url = route('tgmehdi.bot', ['bot_name' => $this->bot['name']]);
         $token = $this->token;
-        $secret_token = $this->bot['secret_token'];;
-        return Http::connectTimeout(20)->withOptions(['proxy' => config('tgmehdi.proxy', null), 'verify' => false
+        $secret_token = $this->bot['secret_token'];
+        $req = Http::connectTimeout(20)->withOptions(['proxy' => config('tgmehdi.proxy', null), 'verify' => false]);
+        $data = ['url' => $site_url, 'allowed_updates' => json_encode($this->update_types)];
+        if ($secret_token) {
+            $data['secret_token'] = $secret_token;
+        }
+        if (config('tgmehdi.self_signed_webhook.active')) {
+            $data['ip_address'] = $_SERVER['SERVER_ADDR'];
+            $req->attach('certificate', Storage::get(config('tgmehdi.self_signed_webhook.certificate')));
+        }
 
-        ])->get("https://api.telegram.org/bot$token/setWebhook?url=$site_url"
-            . (($secret_token) ? "&secret_token=$secret_token" : '')
-            . "&allowed_updates=" . json_encode($this->update_types));
+        $req->post("https://api.telegram.org/bot$token/setWebhook", $data);
     }
 
     public function delete_webhook()
@@ -237,7 +243,6 @@ class TelegramBot
             $data = json_decode($this->chat->temp_text, true);
             $data[$key] = $text;
             $this->chat->temp_text = json_encode($data);
-            $this->chat->save();
             return $text;
         } else {
             if (!isset($this->chat_temp)) {
@@ -412,8 +417,8 @@ class TelegramBot
                 $this->chat->save();
             } else {
                 $this->chat_data('status', $this->chat_status);
-                if(!$this->chat_data('save_date') or Carbon::createFromTimestamp($this->chat_data('save_date'))->diffInMinutes(now(),true) > 90) {
-                    if(in_array($this->chat_type,$this->bot['allowed_chats'])) {
+                if (!$this->chat_data('save_date') or Carbon::createFromTimestamp($this->chat_data('save_date'))->diffInMinutes(now(), true) > 90) {
+                    if (in_array($this->chat_type, $this->bot['allowed_chats'])) {
                         $this->chat();
                         $this->chat->status = $this->chat_status;
                         $this->chat->save();

@@ -18,4 +18,8 @@ return [
     'middleware' => '',
     'parse_mode' => 'markdown',
     'chat' => '\\App\\Models\\Chat',
+    'self_signed_webhook' => [
+        'active' => false,
+        'certificate' => env('TGMEHDI_CERTIFICATE', null),
+    ]
 ];

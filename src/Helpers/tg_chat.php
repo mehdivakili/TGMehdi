@@ -14,13 +14,6 @@ if (!function_exists("tg_chat")) {
         return TGFacade::chat();
     }
 
-    function tg_goto($tg, $state, $data = [])
-    {
-        $class = new StateBase(add_to_states: false);
-        $class->init($tg);
-        $class->goto($state, $data);
-    }
-
 
     function keyboardPagination($prefix, $query, $keyboard, $func, $page, $per_page = 10)
     {
