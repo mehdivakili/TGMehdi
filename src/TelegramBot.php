@@ -35,8 +35,7 @@ class TelegramBot
 
     private array $chat_data;
     private bool $chat_data_changed = false;
-    private bool $chat_temp_delete = false;
-
+    private array $chat_temp = [];
     private bool $temp_changed = false;
     /**
      * @var false|string
@@ -129,7 +128,7 @@ class TelegramBot
             $req->attach('certificate', Storage::get(config('tgmehdi.self_signed_webhook.certificate')));
         }
 
-        $req->post("https://api.telegram.org/bot$token/setWebhook", $data);
+        return $req->post("https://api.telegram.org/bot$token/setWebhook", $data);
     }
 
     public function delete_webhook()
@@ -399,7 +398,11 @@ class TelegramBot
         $this->old_reply = null;
         $this->reply_message_id = null;
         $this->update = null;
-
+        $this->chat_data = [];
+        $this->chat_temp = [];
+        $this->chat_status = null;
+        $this->chat_data_changed = false;
+        $this->temp_changed = false;
     }
 
     public function exec($func, $args = [])
