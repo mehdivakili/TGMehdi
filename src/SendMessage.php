@@ -56,12 +56,15 @@ trait SendMessage
         if ($this->keyboard and !$this->keyboard->is_sended and $url and empty($post_params['reply_markup'])) {
             $post_params['reply_markup'] = $this->keyboard->render();
         }
+        $res = false;
         if ($url != "") {
             if ($this->bot['message_queue'])
-                $res = SendRequest::dispatch($this->bot['name'], $url, $post_params, $files)->onQueue('message_answers');
+                SendRequest::dispatch($this->bot['name'], $url, $post_params, $files)->onQueue('message_answers');
             else {
+                $n = count(BotController::$results);
                 SendRequest::dispatchSync($this->bot['name'], $url, $post_params, $files);
-                $res = BotController::$results[array_key_last(BotController::$results)];
+                if ($n != count(BotController::$results))
+                    $res = BotController::$results[array_key_last(BotController::$results)];
             }
             return $res;
         }
