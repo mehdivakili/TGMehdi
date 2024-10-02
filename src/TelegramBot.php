@@ -35,7 +35,7 @@ class TelegramBot
 
     private array $chat_data;
     private bool $chat_data_changed = false;
-    private array $chat_temp = [];
+    private array|null $chat_temp = null;
     private bool $temp_changed = false;
     /**
      * @var false|string
@@ -244,7 +244,7 @@ class TelegramBot
             $this->chat->temp_text = json_encode($data);
             return $text;
         } else {
-            if (!isset($this->chat_temp)) {
+            if (is_null($this->chat_temp)) {
                 $name = (isset($this->bot['shared']) and !empty($this->bot['shared'])) ? $this->bot['shared'] : $this->bot['name'];
                 if ($name != "nothing")
                     $this->chat_temp = Redis::hgetall("{$name}_chat_{$this->chat_id}.temp");
@@ -399,7 +399,7 @@ class TelegramBot
         $this->reply_message_id = null;
         $this->update = null;
         $this->chat_data = [];
-        $this->chat_temp = [];
+        $this->chat_temp = null;
         $this->chat_status = null;
         $this->chat_data_changed = false;
         $this->temp_changed = false;
