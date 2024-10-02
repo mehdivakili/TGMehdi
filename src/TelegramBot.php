@@ -233,15 +233,15 @@ class TelegramBot
     {
         if (empty($this->bot['cache_optimization']) and $this->bot['cache_optimization'] == false) {
             if ($text === null) {
-                $d = json_decode($this->chat->temp_text, true);
+                $d = json_decode($this->chat()->temp_text, true);
                 if (in_array($key, array_keys($d))) {
                     return $d[$key];
                 }
                 return "";
             }
-            $data = json_decode($this->chat->temp_text, true);
+            $data = json_decode($this->chat()->temp_text, true);
             $data[$key] = $text;
-            $this->chat->temp_text = json_encode($data);
+            $this->chat()->temp_text = json_encode($data);
             return $text;
         } else {
             if (is_null($this->chat_temp)) {
