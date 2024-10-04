@@ -28,7 +28,6 @@ class BotRout
     private static $allowed_chat_types = ['private'];
     public static $types = ['text', 'animation', 'audio', 'document', 'photo', 'sticker', 'video', 'video_note', 'voice', 'contact', 'dice', 'game', 'poll', 'venue', 'location'];
     private static $middleware = true;
-    private static $chat_type;
     private static $state_class = null;
 
     private static $priority = 1;
@@ -130,16 +129,7 @@ class BotRout
 
     public static function group($options, $callback)
     {
-
-        $defaults = self::get_options([]);
-
-        $options = self::get_options($options);
-
-        if (!self::$chat_type or in_array(self::$chat_type, $options['allowed_chat_types'])) {
-            self::set_defaults($options);
-            $callback();
-            self::set_defaults($defaults);
-        }
+        TGRout::group($options, $callback);
     }
 
     public static function only($types, $regex, $action, $status = 'default', $allowed_updates = 'default', $middleware = 'default', $state_class = null, $priority = 1)
