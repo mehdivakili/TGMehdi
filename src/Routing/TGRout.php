@@ -14,6 +14,7 @@ class TGRout
     public static $status = '.';
     private static $allowed_chat_types = ['private'];
     private static $is_calaculated = false;
+    private static $middleware = true;
     /**
      * @var bool
      */
@@ -22,6 +23,8 @@ class TGRout
 
     private static $priority = 1;
     private static $real_status;
+
+    private static $allowed_updates = ['message'];
 
     private static function concat($base, $name)
     {
@@ -44,7 +47,9 @@ class TGRout
     private static function get_options($options)
     {
         $options['status'] = (!isset($options['status']) or $options['status'] == 'default') ? self::$status : $options['status'];
+        $options['allowed_updates'] = (!isset($options['allowed_updates']) or $options['allowed_updates'] == 'default') ? self::$allowed_updates : $options['allowed_updates'];
         $options['allowed_chat_types'] = (!isset($options['allowed_chat_types']) or $options['allowed_chat_types'] == 'default') ? self::$allowed_chat_types : $options['allowed_chat_types'];
+        $options['middleware'] = (!isset($options['middleware']) or $options['middleware'] == 'default') ? self::$middleware : self::join_middlewares(self::$middleware, $options['middleware']);
         $options['state_class'] = (!isset($options['state_class'])) ? self::$state_class : $options['state_class'];
         $options['priority'] = (!isset($options['priority'])) ? self::$priority : $options['priority'];
         return $options;
@@ -54,6 +59,8 @@ class TGRout
     private static function set_defaults($options)
     {
         self::$status = (!isset($options['status'])) ? self::$status : $options['status'];
+        self::$middleware = (!isset($options['middleware'])) ? self::$middleware : $options['middleware'];
+        self::$allowed_updates = (!isset($options['allowed_updates'])) ? self::$allowed_updates : $options['allowed_updates'];
         self::$allowed_chat_types = (!isset($options['allowed_chat_types'])) ? self::$allowed_chat_types : $options['allowed_chat_types'];
         self::$state_class = (!isset($options['state_class'])) ? self::$state_class : $options['state_class'];
         self::$priority = (!isset($options['priority'])) ? self::$priority : $options['priority'];
