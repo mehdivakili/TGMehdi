@@ -121,7 +121,7 @@ class BotRout
         $options = self::get_options(['status' => $status, 'allowed_updates' => $updates, 'middleware' => $middleware]);
         $command = (new AlwaysCommand())
             ->func($action)
-            ->middleware((new AnyMiddleware($updates)))
+            ->middleware((new AnyMiddleware($options['allowed_updates'])))
             ->middleware($options['middleware']);
         TGRout::add_command($command
             , $options['status'], $options['priority'], $options['state_class']);
