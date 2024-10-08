@@ -415,7 +415,7 @@ class TelegramBot
 
         $name = (isset($this->bot['shared']) and !empty($this->bot['shared'])) ? $this->bot['shared'] : $this->bot['name'];
         if ($name != "nothing") {
-            if (empty($this->bot['cache_optimization'])) {
+            if (empty($this->bot['cache_optimization']) and in_array($this->chat_type, $this->bot['allowed_chats'])) {
                 $this->chat()->status = $this->chat_status;
                 $this->chat->save();
             } else {

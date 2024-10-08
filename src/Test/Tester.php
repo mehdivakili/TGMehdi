@@ -50,8 +50,15 @@ abstract class Tester
                 TGFacade::send_text($this->input_prefix . $request[1], true);
                 $payload = $this->create_callback_payload($request[1], $request[2]);
                 break;
+            case "member":
+                TGFacade::send_text($this->input_prefix . ' member ' . $request[2], true);
+                $payload = $this->create_member_payload($request[1], $request[2], $request[3]);
+                break;
+            case "raw":
+                TGFacade::send_text($this->input_prefix . ' raw ' . json_encode($request[1]), true);
+                $payload = $request[1];
         }
-        return Http::withHeader('X-Telegram-Bot-Api-Secret-Token', $this->bot_config['secret_token'])->post(route('tgmehdi.bot', ['bot_name' => $this->bot_name]), $payload)->json();
+        return Http::withHeader('X-Telegram-Bot-Api-Secret-Token', $this->bot_config['secret_token'])->post(route('tgmehdi.bot', ['bot_name' => $this->bot_name]), $payload)->body();
 
     }
 
@@ -139,6 +146,60 @@ abstract class Tester
     {
         $r = $this->get_message_ids($payload);
         return $r[array_key_last($r)];
+
+    }
+
+    private function create_member_payload($group_chat_id, string $new_status, string $old_status, string|null $invite_link = null)
+    {
+
+        return [
+            "update_id" => 174638372,
+            "chat_member" => [
+                "from" => [
+                    "id" => $this->chat_id,
+                    "is_bot" => true,
+                    "first_name" => "bot",
+                    "last_name" => "bot",
+                    "username" => "bot",
+                    "language_code" => "en"
+                ],
+                "chat" => [
+                    "id" => $group_chat_id,
+                    "first_name" => "test",
+                    "last_name" => "test",
+                    "username" => "test",
+                    "type" => "group"
+                ],
+                "old_chat_member" => [
+                    "status" => $old_status,
+                    "user" => [
+                        "id" => $this->chat_id,
+                        "is_bot" => true,
+                        "first_name" => "bot",
+                        "last_name" => "bot",
+                        "username" => "bot",
+                        "language_code" => "en"
+                    ],
+                    "is_anonymous" => true
+                ],
+                "new_chat_member" => [
+                    "status" => $new_status,
+                    "user" => [
+                        "id" => $this->chat_id,
+                        "is_bot" => true,
+                        "first_name" => "bot",
+                        "last_name" => "bot",
+                        "username" => "bot",
+                        "language_code" => "en"
+                    ],
+                    "is_anonymous" => true
+                ],
+                "invite_link" => null,
+                "via_join_request" => false,
+                "via_chat_folder_invite_link" => false,
+                "date" => 1724947599,
+            ]
+        ];
 
     }
 }
