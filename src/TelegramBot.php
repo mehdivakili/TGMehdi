@@ -104,7 +104,7 @@ class TelegramBot
     public function get_update_type()
     {
         $d = array_keys($this->data);
-        foreach ($this->update_types as $type) {
+        foreach ($this->bot["update_types"] as $type) {
             if (in_array($type, $d)) {
                 return $type;
             }
@@ -119,7 +119,7 @@ class TelegramBot
         $token = $this->token;
         $secret_token = $this->bot['secret_token'];
         $req = Http::connectTimeout(20)->withOptions(['proxy' => config('tgmehdi.proxy', null), 'verify' => false]);
-        $data = ['url' => $site_url, 'allowed_updates' => json_encode($this->update_types)];
+        $data = ['url' => $site_url, 'allowed_updates' => json_encode($this->bot["update_types"])];
         if ($secret_token) {
             $data['secret_token'] = $secret_token;
         }

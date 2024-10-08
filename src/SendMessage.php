@@ -59,7 +59,7 @@ trait SendMessage
         $res = false;
         if ($url != "") {
             if ($this->bot['message_queue'])
-                SendRequest::dispatch($this->bot['name'], $url, $post_params, $files)->onQueue('message_answers');
+                SendRequest::dispatch($this->bot['name'], $url, $post_params, $files)->onQueue($this->bot['message_queue']);
             else {
                 $n = count(BotController::$results);
                 SendRequest::dispatchSync($this->bot['name'], $url, $post_params, $files);

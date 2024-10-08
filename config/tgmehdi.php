@@ -8,9 +8,11 @@ return [
             'route' => 'default',
             'debug' => env('TGMEHDI_DEBUG', false),
             'allowed_chats' => ['private'],
+            'update_types' => ["message", 'callback_query', 'my_chat_member', 'chat_member', 'chat_boost', 'removed_chat_boost'],
             'shared' => null,
             'cache_optimisation' => true,
-            'message_queue' => null
+            'message_queue' => null,
+            'request_queue' => null,
         ]
     ],
 
