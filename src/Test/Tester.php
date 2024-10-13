@@ -149,7 +149,7 @@ abstract class Tester
 
     }
 
-    private function create_member_payload($group_chat_id, string $new_status, string $old_status, string|null $invite_link = null)
+    public function create_member_payload($group_chat_id, string $new_status, string $old_status, string|null $invite_link = null)
     {
 
         return [
