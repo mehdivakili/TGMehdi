@@ -194,7 +194,9 @@ abstract class Tester
                     ],
                     "is_anonymous" => true
                 ],
-                "invite_link" => null,
+                "invite_link" => [
+                    'invite_link' => $invite_link
+                ],
                 "via_join_request" => false,
                 "via_chat_folder_invite_link" => false,
                 "date" => 1724947599,
