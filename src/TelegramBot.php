@@ -275,6 +275,16 @@ class TelegramBot
         return true;
     }
 
+    public function get_message_status($message_id = null)
+    {
+        if ($message_id === null and $this->get_update_type() != "callback_query") {
+            $message_id = 0;
+        } else if ($message_id === null) {
+            $message_id = $this->input->message_id;
+        }
+        return $this->m_state[$message_id] ?? null;
+    }
+
     public function temp($key = null, $text = null)
     {
         if (empty($this->bot['cache_optimization']) and $this->bot['cache_optimization'] == false) {
@@ -324,7 +334,8 @@ class TelegramBot
         }
 
         if ($text === null) {
-            if ($this->m_temp[$message_id] === null) return null;
+            if (!isset($this->m_temp[$message_id]) or $this->m_temp[$message_id] === null) return null;
+            if ($key === null) return $this->m_temp[$message_id];
             if (in_array($key, array_keys($this->m_temp[$message_id]))) {
                 return $this->m_temp[$message_id][$key];
             }

@@ -174,4 +174,15 @@ trait SendMessage
 
     }
 
+    public function edit_message_keyboard(InlineKeyboard $keyboard, $message = null, $options = [])
+    {
+        if ($message != null) {
+            $options['message_id'] = $message;
+        } else {
+            $options['message_id'] = $this->input->message_id;
+        }
+        $options['reply_markup'] = $keyboard->render();
+        return $this->send_reply('editMessageReplyMarkup', $options, true);
+
+    }
 }
