@@ -54,6 +54,9 @@ class TelegramBot
     public $update_type;
     public $bot = ['name' => 'bot', 'token' => null, 'secret_token' => null];
     public $input;
+    public array $m_text = [];
+    public array $m_state = [];
+    public array $m_temp = [];
 
     public function __construct()
     {
@@ -98,6 +101,13 @@ class TelegramBot
                 $this->chat_status = $this->chat_data('status');
             }
         }
+    }
+
+    public function set_message_state($real_text, $state, $temp, $message_id)
+    {
+        $this->m_text[$message_id] = $real_text;
+        $this->m_state[$message_id] = $state;
+        $this->m_temp[$message_id] = $temp;
     }
 
 
@@ -229,6 +239,42 @@ class TelegramBot
         return true;
     }
 
+    public function change_message_status($status = 0, $message_id = null)
+    {
+        if ($message_id === null and $this->get_update_type() != "callback_query") {
+            $message_id = 0;
+        } else if ($message_id === null) {
+            $message_id = $this->input->message_id;
+        }
+//        if (!empty($this->state_class)) {
+//            $this->state_class->beforeExit();
+//            if (!$this->state_class->canExit()) {
+//                return false;
+//            }
+//        }
+//        if ($status instanceof StateBase) {
+//            $status->beforeEnter();
+//            if ($status->canEnter()) {
+//                $this->state_class?->afterExit();
+//                $status->afterEnter();
+//                $this->state_class = $status;
+//            } else {
+//                return false;
+//            }
+//            if ($status->is_state_change) {
+//                $status = $status->getEnterState();
+//            } else {
+//                $status = ".same.";
+//            }
+//        }
+        if (!str_starts_with($status, '.')) $status = '.' . $status;
+        if (!str_ends_with($status, '.')) $status = $status . '.';
+        if ($status != '.same.') {
+            $this->m_state[$message_id] = $status;
+        }
+        return true;
+    }
+
     public function temp($key = null, $text = null)
     {
         if (empty($this->bot['cache_optimization']) and $this->bot['cache_optimization'] == false) {
@@ -266,6 +312,52 @@ class TelegramBot
                 return $this->chat_temp[$key];
             return null;
         }
+    }
+
+    public function message_temp($key = null, $text = null, $message_id = null)
+    {
+
+        if ($message_id === null and $this->get_update_type() != "callback_query") {
+            $message_id = 0;
+        } else if ($message_id === null) {
+            $message_id = $this->input->message_id;
+        }
+
+        if ($text === null) {
+            if ($this->m_temp[$message_id] === null) return null;
+            if (in_array($key, array_keys($this->m_temp[$message_id]))) {
+                return $this->m_temp[$message_id][$key];
+            }
+            return "";
+        }
+        if (!isset($this->m_temp[$message_id]) or $this->m_temp[$message_id] === null) $this->m_temp[$message_id] = [];
+        $this->m_temp[$message_id][$key] = $text;
+        return $text;
+    }
+
+    public function del_message_temp($key = null, $message_id = null)
+    {
+        if ($message_id === null and $this->get_update_type() != "callback_query") {
+            $message_id = 0;
+        } else if ($message_id === null) {
+            $message_id = $this->input->message_id;
+        }
+        if (!is_null($key) and !is_null($this->m_temp[$message_id])) {
+            unset($this->m_temp[$message_id][$key]);
+        } else {
+            $this->m_temp[$message_id] = null;
+        }
+
+    }
+
+    public function message_text($message_id = null)
+    {
+        if ($message_id === null and $this->get_update_type() != "callback_query") {
+            $message_id = 0;
+        } else if ($message_id === null) {
+            $message_id = $this->input->message_id;
+        }
+        return $this->m_text[$message_id] ?? "";
     }
 
     public function del_chat_data($key = null)
@@ -403,6 +495,9 @@ class TelegramBot
         $this->chat_status = null;
         $this->chat_data_changed = false;
         $this->temp_changed = false;
+        $this->m_text = [];
+        $this->m_temp = [];
+        $this->m_state = [];
     }
 
     public function exec($func, $args = [])

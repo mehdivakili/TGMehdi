@@ -12,6 +12,7 @@ use TGMehdi\Routing\Commands\RegexCommand;
 use TGMehdi\Routing\Commands\SimpleCommand;
 use TGMehdi\Routing\Middlewares\AnyMiddleware;
 use TGMehdi\Routing\Middlewares\ExceptMiddleware;
+use TGMehdi\Routing\Middlewares\MessageStateMiddleware;
 use TGMehdi\Routing\Middlewares\OnlyMiddleware;
 use TGMehdi\States\StateBase;
 
@@ -24,6 +25,8 @@ class BotRout
      */
     public static $routes = [];
     public static $status = '.';
+
+    public static $message_status = '.';
     private static $allowed_updates = ['message'];
     private static $allowed_chat_types = ['private'];
     public static $types = ['text', 'animation', 'audio', 'document', 'photo', 'sticker', 'video', 'video_note', 'voice', 'contact', 'dice', 'game', 'poll', 'venue', 'location'];
@@ -39,7 +42,7 @@ class BotRout
      * @param $action
      */
 
-    private static function concat($base, $name)
+    public static function concat($base, $name)
     {
         $res = '.' . $base . '.' . $name . '.';
         while (str_contains($res, '..')) $res = str_replace('..', '.', $res);
@@ -73,6 +76,7 @@ class BotRout
     private static function get_options($options)
     {
         $options['status'] = (!isset($options['status']) or $options['status'] == 'default') ? self::$status : self::concat(self::$status, $options['status']);
+        $options['message_status'] = (!isset($options['message_status']) or $options['message_status'] == 'default') ? self::$message_status : self::concat(self::$message_status, $options['message_status']);
         $options['middleware'] = (!isset($options['middleware']) or $options['middleware'] == 'default') ? self::$middleware : self::join_middlewares(self::$middleware, $options['middleware']);
         $options['allowed_updates'] = (!isset($options['allowed_updates']) or $options['allowed_updates'] == 'default') ? self::$allowed_updates : $options['allowed_updates'];
         $options['allowed_chat_types'] = (!isset($options['allowed_chat_types']) or $options['allowed_chat_types'] == 'default') ? self::$allowed_chat_types : $options['allowed_chat_types'];
@@ -160,6 +164,18 @@ class BotRout
         $options = self::get_options(['status' => $status, 'allowed_updates' => ['callback_query'], 'middleware' => $middleware, 'state_class' => $state_class, 'priority' => $priority]);
         TGRout::add_command($command->func($action)
             ->middleware((new AnyMiddleware($options['allowed_updates'])))
+            ->middleware($options['middleware'])
+            , $options['status'], $options['priority'], $options['state_class']);
+        return $command;
+    }
+
+    public static function message_callback($regex, $action, $message_status = 'default', $status = 'default', $middleware = 'default', $state_class = null, $priority = 1)
+    {
+        $command = self::guess_command($regex);
+        $options = self::get_options(['status' => $status, 'message_status' => $message_status, 'allowed_updates' => ['callback_query'], 'middleware' => $middleware, 'state_class' => $state_class, 'priority' => $priority]);
+        TGRout::add_command($command->func($action)
+            ->middleware((new AnyMiddleware($options['allowed_updates'])))
+            ->middleware((new MessageStateMiddleware($options['message_status'])))
             ->middleware($options['middleware'])
             , $options['status'], $options['priority'], $options['state_class']);
         return $command;

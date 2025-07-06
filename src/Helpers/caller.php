@@ -112,6 +112,9 @@ if (!function_exists('general_call')) {
             }
             return false;
         } else if ($tg and $func instanceof \TGMehdi\Types\InlineMessage) {
+            if (($message_status == 'edit') or (is_null($message_status) and $tg->get_update_type() == 'callback_query')) {
+                $func->message_id = $tg->input->message_id;
+            }
             $s = $func->render($tg);
             if (!empty($s['text'])) {
                 $text = $s['text'];
