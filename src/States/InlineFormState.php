@@ -20,6 +20,8 @@ class InlineFormState extends StateBase
 
     protected $formRegex = "/.*/";
 
+    protected $showValue = null;
+
     protected $success;
     private string|null $message_state = null;
     protected $keyboardLayout = [];
@@ -29,6 +31,7 @@ class InlineFormState extends StateBase
     private $delete_data = "delete";
 
     protected $filter;
+    private $wipe_data = "wipe";
 
     public function setMessageState($message_state)
     {
@@ -42,6 +45,12 @@ class InlineFormState extends StateBase
             return $this->getState();
         }
         return $this->message_state;
+    }
+
+    public function setShowValue($value)
+    {
+        $this->showValue = $value;
+        return $this;
     }
 
     public function setKey($key)
@@ -114,6 +123,7 @@ class InlineFormState extends StateBase
     {
         BotRout::message_callback($this->confirm_data, [$this, "handle"], $this->getMessageState(), $this->getCommandState())->set_state_class($this);
         BotRout::message_callback($this->delete_data, [$this, "delKeys"], $this->getMessageState(), $this->getCommandState())->set_state_class($this);
+        BotRout::message_callback($this->wipe_data, [$this, "wipe"], $this->getMessageState(), $this->getCommandState())->set_state_class($this);
         BotRout::message_callback($this->getDataRegex(), [$this, "setKeys"], $this->getMessageState(), $this->getCommandState())->set_state_class($this);
         parent::registerRoutes();
     }
@@ -123,7 +133,12 @@ class InlineFormState extends StateBase
         $this->keyboard = new InlineKeyboard();
         $this->startKeyboard();
         $this->keyboard->newLine();
-        $this->keyboard->newButton($this->bot->message_temp($this->key) ?? "");
+        $value = $this->bot->message_temp($this->key);
+        if (!is_null($this->showValue)) {
+            $f = $this->showValue;
+            $value = $f($value);
+        }
+        $this->keyboard->newButton($value ?? "");
         foreach ($this->keyboardLayout as $row) {
             $this->keyboard->newLine();
             foreach ($row as $text => $data) {
@@ -153,6 +168,12 @@ class InlineFormState extends StateBase
     public function delKeys()
     {
         $this->bot->message_temp($this->key, substr($this->bot->message_temp($this->key), 0, -1));
+        $this->updateState();
+    }
+
+    public function wipe()
+    {
+        $this->bot->message_temp($this->key, "");
         $this->updateState();
     }
 

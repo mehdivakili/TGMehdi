@@ -3,14 +3,16 @@
 namespace TGMehdi\States;
 
 use TGMehdi\Routing\BotRout;
+use TGMehdi\Types\InlineKeyboard;
 use TGMehdi\Types\ReplyKeyboard;
 
-class MuxState extends StateBase
+class InlineMuxState2 extends StateBase
 {
     protected $commands = [];
 
     protected $filter = null;
 
+    private string|null $message_state = null;
     protected $keyboardOrder = [-1];
 
     public function addCommand(...$args)
@@ -28,7 +30,7 @@ class MuxState extends StateBase
     public function beforeEnter()
     {
         if (!$this->keyboard) {
-            $keyboard = new ReplyKeyboard();
+            $keyboard = new InlineKeyboard();
             $commands = $this->commands;
             $orderI = 0;
             $choiceI = 0;
@@ -38,10 +40,10 @@ class MuxState extends StateBase
                 if (!is_null($this->filter)) {
                     $value = $this->exec(['return', $this->filter], ['command' => $commands[$choiceI++]]);
                     if ($value) {
-                        $keyboard->newButton($value[0]);
+                        $keyboard->newButton($value[0], $value[1], true);
                     }
                 } else {
-                    $keyboard->newButton($commands[$choiceI++][0]);
+                    $keyboard->newButton($commands[$choiceI][0], $commands[$choiceI++][1], true);
                 }
                 if ($order == 0) {
                     break;
@@ -61,6 +63,7 @@ class MuxState extends StateBase
             $this->setKeyboard($keyboard);
 
         }
+        $this->bot->change_message_status($this->getMessageState());
         return parent::beforeEnter();
     }
 
@@ -73,8 +76,21 @@ class MuxState extends StateBase
     public function registerRoutes()
     {
         foreach ($this->commands as $command) {
-            BotRout::any(...$command);
+            BotRout::message_callback($command[1], $command[2], $this->getMessageState(), $this->getCommandState())->set_state_class($this);
         }
         parent::registerRoutes();
+    }
+
+    public function setMessageState($message_state)
+    {
+        $this->message_state = $message_state;
+    }
+
+    public function getMessageState()
+    {
+        if (is_null($this->message_state)) {
+            return $this->getState();
+        }
+        return $this->message_state;
     }
 }

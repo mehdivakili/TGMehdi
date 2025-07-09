@@ -43,9 +43,6 @@ class InlineChoiceState extends StateBase
         }
         $r = '/^(' . implode('|', $choices) . ')$/';
         $name = ($this->name) ?: $this->state_key;
-        echo "<hr>";
-        print_r($this->getMessageState());
-        echo "<hr>";
         BotRout::message_callback("$r", [$this, "handle"], $this->getMessageState(), $this->getCommandState())->set_state_class($this)->name($name);
         parent::registerRoutes();
     }

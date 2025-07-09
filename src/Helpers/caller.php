@@ -67,6 +67,7 @@ if (!function_exists('general_call')) {
         $global_commands = ['goto', 'send', 'edit', 'return'];
         if (is_null($func)) return true;
         if (is_bool($func)) return $func;
+        if (is_array($func) and $message_status == 'return') return $func;
         if (!isset($tg->state_class) or $state_class != null)
             $tg->state_class = $state_class;
         if ($state_class)
@@ -88,7 +89,7 @@ if (!function_exists('general_call')) {
                 return general_call($tg, $func[1], $args, $state_class, "return");
             }
         } else if (is_callable($func)) {
-            return general_call($tg, call_with_dependency_inversion($tg, $func, $args, $state_class), $args, $state_class);
+            return general_call($tg, call_with_dependency_inversion($tg, $func, $args, $state_class), $args, $state_class, $message_status);
         } else if ($tg and ($func instanceof \TGMehdi\Types\Media)) {
             $s = $func->render($tg);
             if (($message_status == 'edit') or (is_null($message_status) and $tg->get_update_type() == 'callback_query')) {
