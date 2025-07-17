@@ -137,15 +137,17 @@ class TelegramBot
             $data['ip_address'] = $_SERVER['SERVER_ADDR'];
             $req->attach('certificate', Storage::get(config('tgmehdi.self_signed_webhook.certificate')));
         }
+        $endpoint_url = config('tgmehdi.bots.' . $this->bot['name'] . '.endpoint_url', 'https://api.telegram.org/bot');
 
-        return $req->post("https://api.telegram.org/bot$token/setWebhook", $data);
+        return $req->post($endpoint_url . "$token/setWebhook", $data);
     }
 
     public function delete_webhook()
     {
+        $endpoint_url = config('tgmehdi.bots.' . $this->bot['name'] . '.endpoint_url', 'https://api.telegram.org/bot');
         return Http::connectTimeout(20)->withOptions(['proxy' => config('tgmehdi.proxy', null), 'verify' => false
 
-        ])->get("https://api.telegram.org/bot{$this->token}/deleteWebhook?drop_pending_updates=True");
+        ])->get("{$endpoint_url}{$this->token}/deleteWebhook?drop_pending_updates=True");
     }
 
     public function restart_webhook()
@@ -200,10 +202,11 @@ class TelegramBot
     {
         $file = json_decode(file_get_contents($this->bot_url . '/getFile?file_id=' . $file_id), true);
         $file_download_path = $file["result"]['file_path'];
+        $endpoint_url = config('tgmehdi.bots.' . $this->bot['name'] . '.endpoint_url', 'https://api.telegram.org/bot');
         Storage::put($file_path . '/' . $file_download_path,
             Http::connectTimeout(20)->withOptions(['proxy' => config('tgmehdi.proxy', null), 'verify' => false
 
-            ])->get("https://api.telegram.org/file/bot{$this->token}/{$file_download_path}"));
+            ])->get("{$endpoint_url}{$this->token}/{$file_download_path}"));
         return $file_path . '/' . $file_download_path;
     }
 
@@ -489,7 +492,8 @@ class TelegramBot
         $this->bot = config('tgmehdi.bots.' . $bot_name);
         $this->bot['name'] = $bot_name;
         $this->token = $this->bot['token'];
-        $this->bot_url = "https://api.telegram.org/bot" . $this->token;
+        $endpoint_url = config('tgmehdi.bots.' . $this->bot['name'] . '.endpoint_url', 'https://api.telegram.org/bot');
+        $this->bot_url = $endpoint_url . $this->token;
         $this->data = null;
         $this->keyboard = null;
         $this->chat_id = null;

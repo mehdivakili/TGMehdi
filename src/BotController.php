@@ -28,13 +28,14 @@ class BotController extends Controller
         $be_seen = $request->get('be_seen');
         $token = config('tgmehdi.bots.' . $bot_name . '.token');
         $update_types = config('tgmehdi.bots.' . $bot_name . '.update_types');
+        $endpoint_url = config('tgmehdi.bots.' . $bot_name . '.endpoint_url', 'https://api.telegram.org/bot');
         $response = Http::connectTimeout(20)->withOptions(['proxy' => config('tgmehdi.proxy', null), 'verify' => false
-        ])->get("https://api.telegram.org/bot$token/getUpdates?offset=" . (cache('update_id') + 1) . "&allowed_updates=" . json_encode($update_types));
+        ])->get($endpoint_url . $token . "/getUpdates?offset=" . (cache($bot_name . '_update_id') + 1) . "&allowed_updates=" . json_encode($update_types));
         $j = json_decode($response->body(), true)['result'];
         echo "<hr>" . json_encode($j) . "<hr>";
         foreach ($j as $item) {
 
-            Cache::forever('update_id', cache('update_id') + 1);
+            Cache::forever($bot_name . '_update_id', cache($bot_name . '_update_id') + 1);
             $res = $this->bot($request, $bot_name, !$be_seen, $item);
             echo "<hr>" . json_encode($res) . "<hr>";
             self::$results = [];

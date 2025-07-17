@@ -34,11 +34,13 @@ class SendRequest implements ShouldQueue
     public function handle()
     {
         $token = config('tgmehdi.bots.' . $this->bot_name . '.token');
+        $endpoint_url = config('tgmehdi.bots.' . $this->bot_name . '.endpoint_url', 'https://api.telegram.org/bot');
         $req = Http::connectTimeout(20)->withOptions(['proxy' => config('tgmehdi.proxy', null), 'verify' => false]);
         foreach ($this->files as $key => $file) {
             $req->attach($key, $file->getFile(), $file->name);
         }
-        $res = $req->post("https://api.telegram.org/bot" . $token . '/' . $this->url, $this->params)->json();
+
+        $res = $req->post($endpoint_url . $token . '/' . $this->url, $this->params)->json();
         BotController::add_res(["url" => $this->url, "bot_name" => $this->bot_name, "params" => $this->params]);
         BotController::add_res($res);
         return $res;

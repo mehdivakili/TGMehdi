@@ -31,6 +31,9 @@ class ReplyKeyboard extends TelegramBaseKeyboard
     public function render()
     {
         $this->is_sended = true;
+        if ($this->keyboard['keyboard'][count($this->keyboard['keyboard']) - 1] == []) {
+            unset($this->keyboard['keyboard'][count($this->keyboard['keyboard']) - 1]);
+        }
         return parent::render();
     }
 

@@ -50,6 +50,9 @@ class InlineKeyboard extends TelegramBaseKeyboard
                     unset($this->keyboard["inline_keyboard"][$line][$key]['has_state']);
                 }
             }
+            if ($this->keyboard['inline_keyboard'][$line] == []) {
+                unset($this->keyboard['inline_keyboard'][$line]);
+            }
         }
         return $this->keyboard;
     }

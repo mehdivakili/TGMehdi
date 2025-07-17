@@ -13,6 +13,7 @@ return [
             'cache_optimisation' => true,
             'message_queue' => null,
             'request_queue' => null,
+            'endpoint_url' => 'https://api.telegram.org/bot',
         ]
     ],
 

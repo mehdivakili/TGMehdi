@@ -14,7 +14,7 @@ abstract class TelegramBaseKeyboard
 
     public function render()
     {
-        return json_encode($this->keyboard);
+        return $this->keyboard;
     }
 
 }
