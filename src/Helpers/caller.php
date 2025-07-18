@@ -117,15 +117,8 @@ if (!function_exists('general_call')) {
                 $func->message_id = $tg->input->message_id;
             }
             $s = $func->render($tg);
-            if (!empty($s['text'])) {
-                $text = $s['text'];
-                $options = ['reply_markup' => $s['reply_markup']];
-                if (($message_status == 'edit') or (is_null($message_status) and $tg->get_update_type() == 'callback_query')) {
-                    $tg->edit_message_text($text, options: $options);
-                } else {
-                    $tg->send_text($text, options: $options);
-
-                }
+            foreach ($s as $reply) {
+                $tg->send_reply($reply[0], $reply[1], $reply[2] ?? false);
             }
         }
 
