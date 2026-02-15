@@ -2,7 +2,7 @@
 
 namespace TGMehdi\States;
 
-use TGMehdi\Routing\BotRout;
+use TGMehdi\Facades\BotRout;
 use TGMehdi\Types\InlineKeyboard;
 use TGMehdi\Types\InlineMessage;
 use TGMehdi\Types\ReplyKeyboard;

@@ -2,7 +2,7 @@
 
 namespace TGMehdi\Routing\Inputs;
 
-use TGMehdi\Routing\BotRout;
+use TGMehdi\Facades\BotRout;
 use TGMehdi\TelegramBot;
 
 class MessageInput implements InputContract
@@ -26,7 +26,7 @@ class MessageInput implements InputContract
     public function get_message_type()
     {
         $out = false;
-        $types = BotRout::$types;
+        $types = BotRout::getTypes();
         foreach ($types as $type) {
             if (isset($this->message[$type])) {
                 $out = $type;

@@ -2,6 +2,7 @@
 
 namespace TGMehdi\States;
 
+use TGMehdi\Facades\StateFacade;
 use TGMehdi\TelegramBot;
 
 trait StateHelper
@@ -11,12 +12,12 @@ trait StateHelper
     function goto($state, $data = [], $keys = [])
     {
         if (is_string($state)) {
-            if (isset(StateBase::$states[$state])) {
-                switch (StateBase::$states[$state]['type']) {
+            if (isset(StateFacade::getStates()[$state])) {
+                switch (StateFacade::getStates()[$state]['type']) {
                     case 'abbr':
-                        return $this->goto(StateBase::$states[$state]['state'], $data, $keys);
+                        return $this->goto(StateFacade::getStates()[$state]['state'], $data, $keys);
                     default:
-                        $state = StateBase::$states[$state]['state'];
+                        $state = StateFacade::getStates()[$state]['state'];
                         $state->init($this->bot);
                         $f_d = [];
                         if (!empty($keys)) {

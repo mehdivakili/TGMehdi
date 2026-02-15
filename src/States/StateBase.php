@@ -2,8 +2,9 @@
 
 namespace TGMehdi\States;
 
+use TGMehdi\Facades\StateFacade;
 use TGMehdi\Facades\TGFacade;
-use TGMehdi\Routing\BotRout;
+use TGMehdi\Facades\BotRout;
 use TGMehdi\TelegramBot;
 use TGMehdi\Types\InlineKeyboard;
 use TGMehdi\Types\InlineMessage;
@@ -17,7 +18,6 @@ class StateBase
     public bool $is_state_change = false;
 
 
-    public static $states = [];
     public $command_state;
 
     public bool $route_registered = false;
@@ -25,7 +25,7 @@ class StateBase
     public static function add_state(StateBase $state, $stay = true, $key = null)
     {
         $key = $key ?? $state->get_goto_key();
-        self::$states[$key] = ['type' => 'state', 'state' => $state, 'stay' => $stay];
+        StateFacade::setState($key,['type' => 'state', 'state' => $state, 'stay' => $stay]);
         $state->state_key = $key;
         if (!$state->is_state_change)
             $state->is_state_change = $stay;
@@ -81,7 +81,7 @@ class StateBase
 
     public static function add_abbr(string $key, string $state)
     {
-        self::$states[$key] = ['type' => 'abbr', 'state' => $state];
+        StateFacade::setState($key,['type' => 'abbr', 'state' => $state]);
     }
 
     function getDefaultText()

@@ -12,8 +12,9 @@ use Illuminate\Support\Facades\Http;
 use TGMehdi\BotController;
 use TGMehdi\Events\DataParsedEvent;
 use TGMehdi\Events\ErrorEvent;
+use TGMehdi\Facades\StateFacade;
 use TGMehdi\Jobs\Middleware\RedisThrottle;
-use TGMehdi\Routing\TGRout;
+use TGMehdi\Facades\TGRout;
 use TGMehdi\TelegramBot;
 
 class ReceiveRequest implements ShouldQueue
@@ -101,6 +102,6 @@ class ReceiveRequest implements ShouldQueue
                 throw $exception;
             return [['result' => 'error', 'message' => $exception->getMessage()]];
         }
-        return BotController::$results;
+        return StateFacade::getResults();
     }
 }

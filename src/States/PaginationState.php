@@ -3,7 +3,7 @@
 namespace TGMehdi\States;
 
 use Illuminate\Support\Collection;
-use TGMehdi\Routing\BotRout;
+use TGMehdi\Facades\BotRout;
 use TGMehdi\Types\InlineKeyboard;
 use TGMehdi\Types\InlineMessage;
 

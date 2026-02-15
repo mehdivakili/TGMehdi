@@ -4,7 +4,7 @@ namespace TGMehdi\Test;
 
 use Illuminate\Support\Facades\Http;
 use TGMehdi\Facades\TGFacade;
-use TGMehdi\Routing\BotRout;
+use TGMehdi\Facades\BotRout;
 
 abstract class Tester
 {

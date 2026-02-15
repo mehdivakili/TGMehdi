@@ -8,7 +8,7 @@ class BRH
 {
     public static function add_goto($regex, $func, $key,$command_state )
     {
-        $state = $state ?? BotRout::$status;
+        $state = $state ?? BotRout::getStatus();
         BotRout::state((new SimpleState($key))
             ->setRegex($regex)
             ->setFunc($func)

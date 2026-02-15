@@ -2,6 +2,7 @@
 
 namespace TGMehdi\Routing;
 
+use Illuminate\Support\Facades\Log;
 use TGMehdi\Routing\Commands\CommandContract;
 use TGMehdi\Routing\Inputs\CallbackInput;
 use TGMehdi\States\StateBase;
@@ -9,24 +10,24 @@ use TGMehdi\TelegramBot;
 
 class TGRout
 {
-    public static $routes = [];
-    public static $keys = [];
-    public static $status = '.';
-    private static $allowed_chat_types = ['private'];
-    private static $is_calaculated = false;
-    private static $middleware = true;
+    public $routes = [];
+    public $keys = [];
+    public $status = '.';
+    private $allowed_chat_types = ['private'];
+    private $is_calaculated = false;
+    private $middleware = true;
     /**
      * @var bool
      */
-    private static $chat_type;
-    private static $state_class = null;
+    private $chat_type;
+    private $state_class = null;
 
-    private static $priority = 1;
-    private static $real_status;
+    private $priority = 1;
+    private $real_status;
 
-    private static $allowed_updates = ['message'];
+    private $allowed_updates = ['message'];
 
-    private static function concat($base, $name)
+    private function concat($base, $name)
     {
         $res = '.' . $base . '.' . $name . '.';
         while (str_contains($res, '..')) $res = str_replace('..', '.', $res);
@@ -35,7 +36,7 @@ class TGRout
 
     }
 
-    private static function join_middlewares($base_middleware, $middleware)
+    private function join_middlewares($base_middleware, $middleware)
     {
         if (!is_array($base_middleware)) $base_middleware = [$base_middleware];
         if (!is_array($middleware)) $middleware = [$middleware];
@@ -44,40 +45,40 @@ class TGRout
         return array_merge($a, $b);
     }
 
-    private static function get_options($options)
+    private function get_options($options)
     {
-        $options['status'] = (!isset($options['status']) or $options['status'] == 'default') ? self::$status : $options['status'];
-        $options['allowed_updates'] = (!isset($options['allowed_updates']) or $options['allowed_updates'] == 'default') ? self::$allowed_updates : $options['allowed_updates'];
-        $options['allowed_chat_types'] = (!isset($options['allowed_chat_types']) or $options['allowed_chat_types'] == 'default') ? self::$allowed_chat_types : $options['allowed_chat_types'];
-        $options['middleware'] = (!isset($options['middleware']) or $options['middleware'] == 'default') ? self::$middleware : self::join_middlewares(self::$middleware, $options['middleware']);
-        $options['state_class'] = (!isset($options['state_class'])) ? self::$state_class : $options['state_class'];
-        $options['priority'] = (!isset($options['priority'])) ? self::$priority : $options['priority'];
+        $options['status'] = (!isset($options['status']) or $options['status'] == 'default') ? $this->status : $options['status'];
+        $options['allowed_updates'] = (!isset($options['allowed_updates']) or $options['allowed_updates'] == 'default') ? $this->allowed_updates : $options['allowed_updates'];
+        $options['allowed_chat_types'] = (!isset($options['allowed_chat_types']) or $options['allowed_chat_types'] == 'default') ? $this->allowed_chat_types : $options['allowed_chat_types'];
+        $options['middleware'] = (!isset($options['middleware']) or $options['middleware'] == 'default') ? $this->middleware : $this->join_middlewares($this->middleware, $options['middleware']);
+        $options['state_class'] = (!isset($options['state_class'])) ? $this->state_class : $options['state_class'];
+        $options['priority'] = (!isset($options['priority'])) ? $this->priority : $options['priority'];
         return $options;
 
     }
 
-    private static function set_defaults($options)
+    private function set_defaults($options)
     {
-        self::$status = (!isset($options['status'])) ? self::$status : $options['status'];
-        self::$middleware = (!isset($options['middleware'])) ? self::$middleware : $options['middleware'];
-        self::$allowed_updates = (!isset($options['allowed_updates'])) ? self::$allowed_updates : $options['allowed_updates'];
-        self::$allowed_chat_types = (!isset($options['allowed_chat_types'])) ? self::$allowed_chat_types : $options['allowed_chat_types'];
-        self::$state_class = (!isset($options['state_class'])) ? self::$state_class : $options['state_class'];
-        self::$priority = (!isset($options['priority'])) ? self::$priority : $options['priority'];
+        $this->status = (!isset($options['status'])) ? $this->status : $options['status'];
+        $this->middleware = (!isset($options['middleware'])) ? $this->middleware : $options['middleware'];
+        $this->allowed_updates = (!isset($options['allowed_updates'])) ? $this->allowed_updates : $options['allowed_updates'];
+        $this->allowed_chat_types = (!isset($options['allowed_chat_types'])) ? $this->allowed_chat_types : $options['allowed_chat_types'];
+        $this->state_class = (!isset($options['state_class'])) ? $this->state_class : $options['state_class'];
+        $this->priority = (!isset($options['priority'])) ? $this->priority : $options['priority'];
     }
 
-    private static function make_available_route(...$keys)
+    private function make_available_route(...$keys)
     {
-        $r = self::$routes;
+        $r = $this->routes;
         foreach ($keys as $key) {
             if (!isset($r[$key])) $r[$key] = [];
             $r = $r[$key];
         }
     }
 
-    public static function is_available_route(...$keys)
+    public function is_available_route(...$keys)
     {
-        $r = self::$routes;
+        $r = $this->routes;
         foreach ($keys as $key) {
             if (!isset($r[$key])) return false;
             $r = $r[$key];
@@ -85,56 +86,56 @@ class TGRout
         return true;
     }
 
-    public static function add_command(CommandContract $command, $status = 'default', $priority = 1, $state_class = null)
+    public function add_command(CommandContract $command, $status = 'default', $priority = 1, $state_class = null)
     {
-        $options = self::get_options(['status' => $status, 'priority' => $priority, 'state_class' => $state_class]);
-        if (str_starts_with(self::$real_status, $options['status'])) {
+        $options = $this->get_options(['status' => $status, 'priority' => $priority, 'state_class' => $state_class]);
+        if (str_starts_with($this->real_status, $options['status'])) {
             foreach ($options['allowed_chat_types'] as $allowed_chat_type) {
-                self::make_available_route($allowed_chat_type, $priority, $options['status']);
+                $this->make_available_route($allowed_chat_type, $priority, $options['status']);
                 $command->set_state($options['state_class']);
-                self::$routes[$allowed_chat_type][$priority][$options['status']][] = $command;
+                $this->routes[$allowed_chat_type][$priority][$options['status']][] = $command;
             }
         }
         return $command;
     }
 
-    public static function group($options, $callback)
+    public function group($options, $callback)
     {
 
-        $defaults = self::get_options([]);
+        $defaults = $this->get_options([]);
 
-        $options = self::get_options($options);
+        $options = $this->get_options($options);
 
-        if (!self::$chat_type or in_array(self::$chat_type, $options['allowed_chat_types'])) {
-            self::set_defaults($options);
+        if (!$this->chat_type or in_array($this->chat_type, $options['allowed_chat_types'])) {
+            $this->set_defaults($options);
             $callback();
-            self::set_defaults($defaults);
+            $this->set_defaults($defaults);
         }
     }
 
-    public static function state(StateBase $state)
+    public function state(StateBase $state)
     {
         $command_state = $state->getCommandState();
-        self::group(['status' => $command_state, 'state_class' => $state], function () use ($state) {
+        $this->group(['status' => $command_state, 'state_class' => $state], function () use ($state) {
             $bot = app(TelegramBot::class);
             $state->init($bot);
             $state->registerRoutes();
         });
     }
 
-    public static function get_routes($bot_name, $chat_type, $real_status)
+    public function get_routes($bot_name, $chat_type, $real_status)
     {
-        if (!self::$is_calaculated) {
-            self::$chat_type = $chat_type;
-            self::$real_status = $real_status;
-            include_once base_path("routes/bots/$bot_name.php");
-            self::$is_calaculated = true;
+        if (!$this->is_calaculated) {
+            $this->chat_type = $chat_type;
+            $this->real_status = $real_status;
+            require(base_path("routes/bots/$bot_name.php"));
+            $this->is_calaculated = true;
         }
-        if (isset(self::$routes[$chat_type])) return self::$routes;
+        if (isset($this->routes[$chat_type])) return $this->routes;
         return [$chat_type => []];
     }
 
-    public static function state_abbr(string $key, string $state)
+    public function state_abbr(string $key, string $state)
     {
         StateBase::add_abbr($key, $state);
     }

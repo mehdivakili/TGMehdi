@@ -1,6 +1,6 @@
 <?php
 
-use TGMehdi\Routing\BotRout;
+use TGMehdi\Facades\BotRout;
 use TGMehdi\Routing\BRH;
 use TGMehdi\TelegramBot;
 use TGMehdi\TGH;

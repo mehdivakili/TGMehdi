@@ -6,16 +6,17 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use TGMehdi\Facades\StateFacade;
 use TGMehdi\Jobs\ReceiveRequest;
 
 class BotController extends Controller
 {
-    public static $results = [];
 
 
     public static function add_res(mixed $json)
     {
-        self::$results[] = $json;
+        StateFacade::pushResult($json);
     }
 
     public function index()
@@ -38,7 +39,7 @@ class BotController extends Controller
             Cache::forever($bot_name . '_update_id', cache($bot_name . '_update_id') + 1);
             $res = $this->bot($request, $bot_name, !$be_seen, $item);
             echo "<hr>" . json_encode($res) . "<hr>";
-            self::$results = [];
+
             $update_id = $item['update_id'];
             Cache::forever('update_id', $update_id);
 //            echo "<hr><h3>DEBUG</h3>";
@@ -58,13 +59,16 @@ class BotController extends Controller
 
     public function bot(Request $request, $bot_name, $is_error_must_see = false, $data = null)
     {
+        StateFacade::clearResult();
+        StateFacade::clearState();
         $data = (is_null($data)) ? $request->all() : $data;
+        Log::info(json_encode($data));
         if (config('tgmehdi.bots.' . $bot_name . '.request_queue')) {
             ReceiveRequest::dispatch($bot_name, $data, $request->header('X-Telegram-Bot-Api-Secret-Token'), $is_error_must_see)->onQueue(config('tgmehdi.bots.' . $bot_name . '.update_queue'));
             return [];
         } else {
             ReceiveRequest::dispatchSync($bot_name, $data, $request->header('X-Telegram-Bot-Api-Secret-Token'), $is_error_must_see);
-            return self::$results;
+            return StateFacade::getResults();
         }
     }
 

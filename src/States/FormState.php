@@ -2,7 +2,7 @@
 
 namespace TGMehdi\States;
 
-use TGMehdi\Routing\BotRout;
+use TGMehdi\Facades\BotRout;
 
 class FormState extends StateBase
 {

@@ -18,8 +18,18 @@ class MainProvider extends ServiceProvider
         $this->mergeConfigFrom(
             __DIR__ . '/../config/tgmehdi.php', 'tgmehdi'
         );
-        $this->app->singleton(TelegramBot::class, function ($app) {
-            return new TelegramBot(app('Illuminate\Http\Request'));
+        $this->app->scoped(TelegramBot::class, function ($app) {
+            return new TelegramBot();
+        });
+        $this->app->scoped(\TGMehdi\Routing\TGRout::class, function ($app) {
+            return new \TGMehdi\Routing\TGRout();
+        });
+
+        $this->app->scoped(\TGMehdi\Routing\BotRout::class, function ($app) {
+            return new \TGMehdi\Routing\BotRout();
+        });
+        $this->app->scoped(\TGMehdi\StateSaver::class, function ($app) {
+            return new \TGMehdi\StateSaver();
         });
         $this->app->bind("tgmehdi.chat", function ($app) {
             $c = config("tgmehdi.chat");

@@ -9,7 +9,8 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Storage;
 use TGMehdi\Facades\ChatFacade;
-use TGMehdi\Routing\BotRout;
+use TGMehdi\Facades\BotRout;
+use TGMehdi\Facades\StateFacade;
 use TGMehdi\Routing\Middlewares\MiddlewareContract;
 use TGMehdi\States\StateBase;
 use TGMehdi\Types\ReplyKeyboard;
@@ -186,7 +187,7 @@ class TelegramBot
     public function get_message_type($message = false)
     {
         $out = false;
-        $types = BotRout::$types;
+        $types = BotRout::getTypes();
         if (!$message) {
             $message = $this->message;
         }
@@ -461,7 +462,7 @@ class TelegramBot
     public function set_state(mixed $real_status)
     {
         $states = [];
-        foreach (StateBase::$states as $state) {
+        foreach (StateFacade::getStates() as $state) {
             if ($state['type'] != 'state') continue;
             if ($state['stay'] and str_starts_with($real_status, $state['state']->getState())) {
                 $states[$state['state']->getState()] = $state['state'];

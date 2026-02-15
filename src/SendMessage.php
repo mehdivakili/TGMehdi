@@ -4,6 +4,7 @@
 namespace TGMehdi;
 
 
+use TGMehdi\Facades\StateFacade;
 use TGMehdi\Jobs\SendRequest;
 use TGMehdi\Types\InlineKeyboard;
 use TGMehdi\Types\ReplyKeyboard;
@@ -61,10 +62,10 @@ trait SendMessage
             if ($this->bot['message_queue'])
                 SendRequest::dispatch($this->bot['name'], $url, $post_params, $files)->onQueue($this->bot['message_queue']);
             else {
-                $n = count(BotController::$results);
+                $n = count(StateFacade::getResults());
                 SendRequest::dispatchSync($this->bot['name'], $url, $post_params, $files);
-                if ($n != count(BotController::$results))
-                    $res = BotController::$results[array_key_last(BotController::$results)];
+                if ($n != count(StateFacade::getResults()))
+                    $res = StateFacade::getResults()[array_key_last(StateFacade::getResults())];
             }
             return $res;
         }
