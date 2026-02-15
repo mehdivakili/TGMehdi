@@ -61,6 +61,7 @@ class BotController extends Controller
     {
         StateFacade::clearResult();
         StateFacade::clearState();
+        StateFacade::clearCommands();
         $data = (is_null($data)) ? $request->all() : $data;
         Log::info(json_encode($data));
         if (config('tgmehdi.bots.' . $bot_name . '.request_queue')) {
