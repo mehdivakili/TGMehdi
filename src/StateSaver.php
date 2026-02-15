@@ -7,6 +7,8 @@ class StateSaver
     public $states = [];
     public $results = [];
 
+    public $commands = [];
+
     public function getStates(): array
     {
         return $this->states;
@@ -35,5 +37,20 @@ class StateSaver
     public function clearState()
     {
         $this->states = [];
+    }
+
+    public function setCommand($key, $command)
+    {
+        $this->commands[$key] = $command;
+    }
+
+    public function getCommands()
+    {
+        return $this->commands;
+    }
+
+    public function clearCommands()
+    {
+        $this->commands = [];
     }
 }
