@@ -14,11 +14,6 @@ class BotController extends Controller
 {
 
 
-    public static function add_res(mixed $json)
-    {
-        StateFacade::pushResult($json);
-    }
-
     public function index()
     {
         return view('tgmehdi::index');
@@ -35,13 +30,10 @@ class BotController extends Controller
         $j = json_decode($response->body(), true)['result'];
         echo "<hr>" . json_encode($j) . "<hr>";
         foreach ($j as $item) {
-
-            Cache::forever($bot_name . '_update_id', cache($bot_name . '_update_id') + 1);
+            $update_id = $item['update_id'];
+            Cache::forever($bot_name . '_update_id', $update_id);
             $res = $this->bot($request, $bot_name, !$be_seen, $item);
             echo "<hr>" . json_encode($res) . "<hr>";
-
-            $update_id = $item['update_id'];
-            Cache::forever('update_id', $update_id);
 //            echo "<hr><h3>DEBUG</h3>";
 //            echo "db query log <br> ";
 //            foreach (DB::getQueryLog() as $query) {
@@ -59,9 +51,6 @@ class BotController extends Controller
 
     public function bot(Request $request, $bot_name, $is_error_must_see = false, $data = null)
     {
-        StateFacade::clearResult();
-        StateFacade::clearState();
-        StateFacade::clearCommands();
         $data = (is_null($data)) ? $request->all() : $data;
         Log::info(json_encode($data));
         if (config('tgmehdi.bots.' . $bot_name . '.request_queue')) {

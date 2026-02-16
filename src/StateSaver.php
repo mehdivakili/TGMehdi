@@ -2,6 +2,7 @@
 
 namespace TGMehdi;
 
+
 class StateSaver
 {
     public $states = [];
@@ -52,5 +53,9 @@ class StateSaver
     public function clearCommands()
     {
         $this->commands = [];
+    }
+    public function add_abbr(string $key, string $state)
+    {
+        $this->setState($key,['type' => 'abbr', 'state' => $state]);
     }
 }

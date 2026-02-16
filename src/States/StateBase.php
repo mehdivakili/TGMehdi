@@ -22,7 +22,7 @@ class StateBase
 
     public bool $route_registered = false;
 
-    public static function add_state(StateBase $state, $stay = true, $key = null)
+    public function add_state(StateBase $state, $stay = true, $key = null)
     {
         $key = $key ?? $state->get_goto_key();
         StateFacade::setState($key,['type' => 'state', 'state' => $state, 'stay' => $stay]);
@@ -55,7 +55,7 @@ class StateBase
             $stay_active = false;
         }
         if (!is_null($key)) {
-            self::add_state($this, $stay_active, $key);
+            $this->add_state($this, $stay_active, $key);
         }
     }
 
@@ -79,7 +79,7 @@ class StateBase
 
     protected $default_text = "test";
 
-    public static function add_abbr(string $key, string $state)
+    public function add_abbr(string $key, string $state)
     {
         StateFacade::setState($key,['type' => 'abbr', 'state' => $state]);
     }

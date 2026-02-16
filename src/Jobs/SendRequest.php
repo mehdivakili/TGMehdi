@@ -10,6 +10,7 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Http;
 use TGMehdi\BotController;
 use TGMehdi\Jobs\Middleware\RedisThrottle;
+use TGMehdi\Facades\StateFacade;
 
 class SendRequest implements ShouldQueue
 {
@@ -41,8 +42,8 @@ class SendRequest implements ShouldQueue
         }
 
         $res = $req->post($endpoint_url . $token . '/' . $this->url, $this->params)->json();
-        BotController::add_res(["url" => $this->url, "bot_name" => $this->bot_name, "params" => $this->params]);
-        BotController::add_res($res);
+        StateFacade::pushResult(["url" => $this->url, "bot_name" => $this->bot_name, "params" => $this->params]);
+        StateFacade::pushResult($res);
         return $res;
     }
 

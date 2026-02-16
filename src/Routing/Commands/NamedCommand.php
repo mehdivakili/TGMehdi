@@ -9,7 +9,6 @@ class NamedCommand extends CommandBase implements CommandContract
 {
     use CommandHelper;
 
-    public static $routes = [];
     public string $pattern;
     public string $replacement;
     public string $sample;

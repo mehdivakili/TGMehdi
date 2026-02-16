@@ -22,6 +22,9 @@ trait SendMessage
     public function send_reply($url, $post_params, $immediately = false)
     {
         $files = [];
+        if (!is_array($post_params)) {
+            $post_params = [];
+        }
         if ($url != '') {
             $post_params['chat_id'] = isset($post_params['chat_id']) ? $post_params['chat_id'] : $this->chat_id;
 

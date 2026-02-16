@@ -3,6 +3,7 @@
 namespace TGMehdi\Routing;
 
 use Illuminate\Support\Facades\Log;
+use TGMehdi\Facades\StateFacade;
 use TGMehdi\Routing\Commands\CommandContract;
 use TGMehdi\Routing\Inputs\CallbackInput;
 use TGMehdi\States\StateBase;
@@ -137,7 +138,7 @@ class TGRout
 
     public function state_abbr(string $key, string $state)
     {
-        StateBase::add_abbr($key, $state);
+        StateFacade::add_abbr($key, $state);
     }
 
 }
