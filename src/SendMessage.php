@@ -173,6 +173,7 @@ trait SendMessage
         } else {
             $options['message_id'] = $this->input->message_id;
         }
+        echo "<hr><hr>helllllllllllllooooooooooooooooo<hr><hr>";
         $options['text'] = $text;
         return $this->send_reply('editMessageText', $options, true);
 

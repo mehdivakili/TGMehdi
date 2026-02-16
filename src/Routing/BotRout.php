@@ -4,7 +4,6 @@
 namespace TGMehdi\Routing;
 
 
-use Illuminate\Contracts\Http\Kernel;
 use TGMehdi\BotKernel;
 use TGMehdi\Routing\Commands\AlwaysCommand;
 use TGMehdi\Routing\Commands\NamedCommand;

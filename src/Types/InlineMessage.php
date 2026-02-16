@@ -31,6 +31,7 @@ class InlineMessage
             }
         }
         if ($this->message_id != 0) {
+            $s['message_id'] = $this->message_id;
             if ($sendType == 'Message')
                 return [['editMessageText', $s]];
             else
