@@ -78,7 +78,7 @@ class Media
 
     public static function withDocumentData($filename, $data, $caption = null)
     {
-        return self::withData($filename, 'document', $caption, $data);
+        return self::withData($filename, $data, 'document', $caption);
     }
 
     public function render(TelegramBot $bot)
@@ -87,11 +87,40 @@ class Media
         if ($this->file_id)
             $res[$this->type] = $this->file_id;
         elseif ($this->path)
-            $res[$this->type] = new TelegramFile($this->path,$this->data);
+            $res[$this->type] = new TelegramFile($this->path, $this->data);
         if ($this->caption)
             $res['caption'] = general_call($bot, $this->caption, message_status: 'return');
         else
             $res['caption'] = $this->caption;
         return $res;
+    }
+
+    public function renderEdit(TelegramBot $bot)
+    {
+        if (!in_array($this->type, ['animation', 'audio', 'document', 'photo', 'video'], true)) {
+            throw new \InvalidArgumentException("Media type '{$this->type}' cannot be edited with editMessageMedia.");
+        }
+
+        $rendered = $this->render($bot);
+        if (!isset($rendered[$this->type])) {
+            throw new \InvalidArgumentException('Editing media requires a file ID, URL, path, or file data.');
+        }
+
+        $file = $rendered[$this->type];
+        $params = ['media' => [
+            'type' => $this->type,
+            'media' => $file instanceof TelegramFile ? 'attach://media_file' : $file,
+            'caption' => $rendered['caption'],
+        ]];
+        $parseMode = config('tgmehdi.parse_mode');
+        if ($parseMode !== null) {
+            $params['media']['parse_mode'] = $parseMode;
+        }
+        if ($file instanceof TelegramFile) {
+            // send_reply extracts top-level TelegramFile values for multipart uploads.
+            $params['media_file'] = $file;
+        }
+
+        return $params;
     }
 }

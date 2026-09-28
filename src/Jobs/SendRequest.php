@@ -40,8 +40,16 @@ class SendRequest implements ShouldQueue
         foreach ($this->files as $key => $file) {
             $req->attach($key, $file->getFile(), $file->name);
         }
-
-        $res = $req->post($endpoint_url . $token . '/' . $this->url, $this->params)->json();
+        $params = $this->params;
+        if (!empty($this->files)) {
+            // Telegram expects structured multipart fields, such as reply_markup, as JSON.
+            foreach ($params as $key => $value) {
+                if (is_array($value) || is_object($value)) {
+                    $params[$key] = json_encode($value, JSON_THROW_ON_ERROR);
+                }
+            }
+        }
+        $res = $req->post($endpoint_url . $token . '/' . $this->url, $params)->json();
         StateFacade::pushResult(["url" => $this->url, "bot_name" => $this->bot_name, "params" => $this->params]);
         StateFacade::pushResult($res);
         return $res;

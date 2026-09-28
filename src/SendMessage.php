@@ -39,7 +39,7 @@ trait SendMessage
                     $post_params[$k] = $p->render();
                 }
             }
-            if (!isset($post_params['parse_mode'])) {
+            if ($url != 'editMessageMedia' && !isset($post_params['parse_mode'])) {
                 $post_params['parse_mode'] = config('tgmehdi.parse_mode');
             }
 

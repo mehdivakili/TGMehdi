@@ -18,6 +18,12 @@ class InlineMessage
         $this->keyboard->state = $bot->m_state[$this->message_id] ?? null;
         $this->keyboard->temp = $bot->m_temp[$this->message_id] ?? null;
         $s = general_call($bot, $this->view, ['inline_keyboard' => $this->keyboard], null, 'return');
+        if ($s instanceof Media && $this->message_id != 0) {
+            $params = $s->renderEdit($bot);
+            $params['message_id'] = $this->message_id;
+            $params['reply_markup'] = $this->keyboard->render();
+            return [['editMessageMedia', $params]];
+        }
         $sendType = "Message";
         if ($s and !($s instanceof InlineMessage)) {
             if (is_array($s) and !isset($s['reply_markup'])) {
@@ -32,10 +38,7 @@ class InlineMessage
         }
         if ($this->message_id != 0) {
             $s['message_id'] = $this->message_id;
-            if ($sendType == 'Message')
-                return [['editMessageText', $s]];
-            else
-                return [['editMessageCaption', $s]];
+            return [['editMessageText', $s]];
 
         } else {
             return [['send' . $sendType, $s]];
