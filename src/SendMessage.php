@@ -28,6 +28,16 @@ trait SendMessage
         if ($url != '') {
             $post_params['chat_id'] = isset($post_params['chat_id']) ? $post_params['chat_id'] : $this->chat_id;
 
+            if ($url == 'editMessageText' && array_key_exists('text', $post_params)
+                && $this->is_caption_message($post_params['chat_id'], $post_params['message_id'] ?? null)) {
+                $url = 'editMessageCaption';
+                $post_params['caption'] = $post_params['text'];
+                if (isset($post_params['entities'])) {
+                    $post_params['caption_entities'] = $post_params['entities'];
+                }
+                unset($post_params['text'], $post_params['entities'], $post_params['link_preview_options'], $post_params['disable_web_page_preview']);
+            }
+
             if ($this->reply_message_id) {
                 $post_params['reply_to_message_id'] = $this->reply_message_id;
             }
@@ -72,6 +82,31 @@ trait SendMessage
             }
             return $res;
         }
+        return false;
+    }
+
+    private function is_caption_message($chat_id, $message_id): bool
+    {
+        if ($message_id === null) return false;
+
+        // Only infer the message type when the update contains the exact edit target.
+        $messages = [
+            $this->data['callback_query']['message'] ?? null,
+            $this->data['message'] ?? null,
+            $this->data['edited_message'] ?? null,
+            $this->data['channel_post'] ?? null,
+            $this->data['edited_channel_post'] ?? null,
+        ];
+        foreach ($messages as $message) {
+            if (!isset($message['message_id'], $message['chat']['id'])
+                || $message['message_id'] != $message_id || $message['chat']['id'] != $chat_id) {
+                continue;
+            }
+            foreach (['animation', 'audio', 'document', 'photo', 'video', 'voice', 'paid_media', 'live_photo'] as $type) {
+                if (isset($message[$type])) return true;
+            }
+        }
+
         return false;
     }
 
@@ -173,7 +208,6 @@ trait SendMessage
         } else {
             $options['message_id'] = $this->input->message_id;
         }
-        echo "<hr><hr>helllllllllllllooooooooooooooooo<hr><hr>";
         $options['text'] = $text;
         return $this->send_reply('editMessageText', $options, true);
 
