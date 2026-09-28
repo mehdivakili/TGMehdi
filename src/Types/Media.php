@@ -10,13 +10,15 @@ class Media
     public $type = null;
     public $caption = null;
     public $path;
+    public $data = null;
 
-    private function __construct($file_id, $type, $caption, $path)
+    private function __construct($file_id, $type, $caption, $path, $data = null)
     {
         $this->file_id = $file_id;
         $this->type = $type;
         $this->caption = $caption;
         $this->path = $path;
+        $this->data = $data;
     }
 
     public static function withFileID($file_id, $type, $caption = null)
@@ -27,6 +29,11 @@ class Media
     public static function withPath($path, $type, $caption = null)
     {
         return new Media(null, $type, $caption, $path);
+    }
+
+    public static function withData($filename, $data, $type, $caption = null)
+    {
+        return new Media(null, $type, $caption, $filename, $data);
     }
 
     public static function withVideoFileID($file_id, $caption = null)
@@ -69,13 +76,18 @@ class Media
         return self::withPath($path, 'document', $caption);
     }
 
+    public static function withDocumentData($filename, $data, $caption = null)
+    {
+        return self::withData($filename, 'document', $caption, $data);
+    }
+
     public function render(TelegramBot $bot)
     {
         $res = [];
         if ($this->file_id)
             $res[$this->type] = $this->file_id;
         elseif ($this->path)
-            $res[$this->type] = new TelegramFile($this->path);
+            $res[$this->type] = new TelegramFile($this->path,$this->data);
         if ($this->caption)
             $res['caption'] = general_call($bot, $this->caption, message_status: 'return');
         else
