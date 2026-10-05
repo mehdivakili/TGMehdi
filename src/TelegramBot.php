@@ -506,7 +506,8 @@ class TelegramBot
         $this->old_reply = null;
         $this->reply_message_id = null;
         $this->update = null;
-        $this->chat_data = [];
+        // Leave the session unloaded so chat_data() reads Redis once the chat ID is known.
+        unset($this->chat_data);
         $this->chat_temp = null;
         $this->chat_status = null;
         $this->chat_data_changed = false;
